@@ -1,0 +1,13 @@
+{
+    "category": "General",
+    "changelog": "- Added music support. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+    "description": "This plugin automacially scans a users library (default every 4 hours), populates a list of recently added (not previously scanned) media, converts that data into HTML format, and sends out emails to a provided list of recipients.",
+    "guid": "60f478ab-2dd6-4ea0-af10-04d033f75979",
+    "imageUrl": "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png",
+    "name": "Newsletters",
+    "overview": "Send newsletters for recently added media",
+    "owner": "jellyfin",
+    "targetAbi": "10.11.0.0",
+    "timestamp": "2025-11-03T20:07:17Z",
+    "version": "0.7.0.0"
+}

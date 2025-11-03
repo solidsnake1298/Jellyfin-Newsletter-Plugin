@@ -1,3 +1,6 @@
+# 0.7.0.0
+- Added music support, initial commit
+
 # 0.6.5.0
 - Updated/fixed support for Jellyfin Server release 10.11.0
 
