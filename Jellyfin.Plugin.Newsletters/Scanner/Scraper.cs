@@ -97,7 +97,7 @@ public class Scraper
 
     private void BuildJsonObjsToCurrScanfile()
     {
-        if (!config.SeriesEnabled && !config.MoviesEnabled)
+        if (!config.SeriesEnabled && !config.MoviesEnabled && !config.MusicEnabled)
         {
             logger.Info("No Libraries Enabled In Config!");
         }
@@ -132,14 +132,14 @@ public class Scraper
 
         if (config.MusicEnabled)
         {
-            InternalItemsQuery music = new InternalItemsQuery();
-            music.IncludeItemTypes = new[] { BaseItemKind.Music };
-            BuildObjs(libManager.GetItemList(music).ToList(), "Music"); // populate music
+            InternalItemsQuery audio = new InternalItemsQuery();
+            audio.IncludeItemTypes = new[] { BaseItemKind.Audio };
+            BuildObjs(libManager.GetItemList(audio).ToList(), "Music"); // populate music
 
             // BuildObjs(
             //     libManager.GetItemList(new InternalItemsQuery
             //     {
-            //         IncludeItemTypes = new[] { BaseItemKind.Music }
+            //         IncludeItemTypes = new[] { BaseItemKind.Audio }
             //     }),
             //     "Music");
         }
@@ -184,17 +184,17 @@ public class Scraper
                         // Checks for multi-disc albums
                         // where each disc is a separate sub-folder
                         // Type will be "Other" for the disc sub-folder
-                        if (season.type == "Music")
-                        {
-                            // Artist
-                            series = item.GetParent().GetParent();
-                        }
-                        else
+                        if (season.IsFolder is true)
                         {
                             // Album
                             season = item.GetParent().GetParent();
                             // Artist
                             series = item.GetParent().GetParent().GetParent();
+                        }
+                        else
+                        {
+                            // Artist
+                            series = item.GetParent().GetParent();
                         }
                     }
                     else
