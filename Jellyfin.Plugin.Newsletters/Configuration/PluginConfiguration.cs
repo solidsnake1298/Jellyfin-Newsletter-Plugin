@@ -99,6 +99,7 @@ public class PluginConfiguration : BasePluginConfiguration
         // default libraries
         MoviesEnabled = true;
         SeriesEnabled = true;
+        MusicEnabled = true;
 
         // poster hosting
         PHType = "Imgur";
@@ -242,4 +243,9 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Gets or sets a value indicating whether Movies should be scanned.
     /// </summary>
     public bool MoviesEnabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether Movies should be scanned.
+    /// </summary>
+    public bool MusicEnabled { get; set; }
 }

@@ -129,6 +129,20 @@ public class Scraper
             //     }),
             //     "Movie");
         }
+
+        if (config.MusicEnabled)
+        {
+            InternalItemsQuery music = new InternalItemsQuery();
+            music.IncludeItemTypes = new[] { BaseItemKind.Music };
+            BuildObjs(libManager.GetItemList(music).ToList(), "Music"); // populate music
+
+            // BuildObjs(
+            //     libManager.GetItemList(new InternalItemsQuery
+            //     {
+            //         IncludeItemTypes = new[] { BaseItemKind.Music }
+            //     }),
+            //     "Music");
+        }
     }
 
     public void BuildObjs(List<BaseItem> items, string type)
@@ -156,6 +170,32 @@ public class Scraper
                     else if (type == "Movie")
                     {
                         episode = season = series = item;
+                    }
+                    else if (type == "Music")
+                    {
+                        // The following folder structure is required
+                        // Artist -> Album -> Song
+                        // or
+                        // Artist -> Album -> Disc # -> Song
+                        // Song
+                        episode = item;
+                        // Album
+                        season = item.GetParent();
+                        // Checks for multi-disc albums
+                        // where each disc is a separate sub-folder
+                        // Type will be "Other" for the disc sub-folder
+                        if (season.type == "Music")
+                        {
+                            // Artist
+                            series = item.GetParent().GetParent();
+                        }
+                        else
+                        {
+                            // Album
+                            season = item.GetParent().GetParent();
+                            // Artist
+                            series = item.GetParent().GetParent().GetParent();
+                        }
                     }
                     else
                     {

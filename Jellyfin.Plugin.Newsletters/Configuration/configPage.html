@@ -52,6 +52,14 @@
                                         </label>
                                     </div>
                                 </td>
+                                <td>
+                                    <div class="checkboxContainer checkboxContainer-withDescription">
+                                        <label class="emby-checkbox-label">
+                                            <input id="MusicEnabled" name="MusicEnabled" type="checkbox" is="emby-checkbox" />
+                                            <span>Music</span>
+                                        </label>
+                                    </div>
+                                </td>
                             </tr>
                         </table>
                     </div>
@@ -213,6 +221,7 @@
                     //librariesEnabled
                     config.SeriesEnabled = document.querySelector('#SeriesEnabled').checked;
                     config.MoviesEnabled = document.querySelector('#MoviesEnabled').checked;
+                    config.MusicEnabled = document.querySelector('#MusicEnabled').checked;
                     //scraperConfig
                     //hosting options
                     config.PHType = document.querySelector('#HostingSelector').value;
@@ -246,6 +255,7 @@
                     //librariesEnabled
                     document.querySelector('#SeriesEnabled').checked = config.SeriesEnabled;
                     document.querySelector('#MoviesEnabled').checked = config.MoviesEnabled;
+                    document.querySelector('#MusicEnabled').checked = config.MusicEnabled;
                     //scraperConfig
                     //hosting options
                     document.querySelector('#HostingSelector').value = config.PHType;
