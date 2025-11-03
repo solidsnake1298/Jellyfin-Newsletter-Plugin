@@ -1,6 +1,6 @@
 # Jellyfin Newsletter Plugin
 <p align='center'>
-    <img src='https://github.com/Cloud9Developer/Jellyfin-Newsletter-Plugin/blob/master/logo.png?raw=true'/><br>
+    <img src='https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/blob/master/logo.png?raw=true'/><br>
 </p>
 This is my first end-to-end C# project, but I hope you enjoy!
 
@@ -8,7 +8,7 @@ This is my first end-to-end C# project, but I hope you enjoy!
 This plugin automacially scans a users library (default every 4 hours), populates a list of *recently added (not previously scanned)* media, converts that data into HTML format, and sends out emails to a provided list of recipients.
 
 <p align='center'>
-    <img src='https://github.com/Cloud9Developer/Jellyfin-Newsletter-Plugin/blob/master/NewsletterExample.png?raw=true'/><br>
+    <img src='https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/blob/master/NewsletterExample.png?raw=true'/><br>
 </p>
 
 # Current Limitations
@@ -73,7 +73,7 @@ Manifest is up an running! You can now import the manifest in Jellyfin and this 
 - Go to the "Repositories" tab
 - Click the '+' to add a new Repository
     - Give it a name (i.e. Newsletters)
-    - In "Repository URL," put "https://raw.githubusercontent.com/Cloud9Developer/Jellyfin-Newsletter-Plugin/master/manifest.json"
+    - In "Repository URL," put "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/manifest.json"
     - Click "Save"
 - You should now see Jellyfin Newsletters in Catalog under the Category "Newsletters"
 - Once installed, restart Jellyfin to activate the plugin and configure your settings for the plugin
