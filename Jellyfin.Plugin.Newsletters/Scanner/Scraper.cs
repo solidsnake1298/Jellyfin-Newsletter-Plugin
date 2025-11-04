@@ -20,6 +20,7 @@ using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -148,7 +149,7 @@ public class Scraper
     public void BuildObjs(List<BaseItem> items, string type)
     {
         logger.Info($"Parsing {type}..");
-        BaseItem episode, season, series;
+        BaseItem episode, season, series, song, album, artist, movie;
         totalLibCount = items.Count;
         logger.Info($"Scan Size: {totalLibCount}");
         logger.Info($"Scanning '{type}'");
@@ -159,71 +160,48 @@ public class Scraper
             progress.Report((double)currCount / (double)totalLibCount * 100);
             if (item is not null)
             {
+                JsonFileObj currFileObj = new JsonFileObj();
                 try
                 {
+                    logger.Debug($"LocationType: " + item.LocationType.ToString());
+                    if (item.LocationType.ToString() == "Virtual")
+                    {
+                        logger.Debug($"No physical path.. Skipping...");
+                        continue;
+                    }
+
                     if (type == "Series")
                     {
                         episode = item;
                         season = item.GetParent();
                         series = item.GetParent().GetParent();
+                        currFileObj.Type = type;
+                        currFileObj = SeriesObj(episode, series, season, currFileObj);
                     }
                     else if (type == "Movie")
                     {
-                        episode = season = series = item;
+                        movie = item;
+                        currFileObj.Type = type;
+                        currFileObj = MovieObj(movie, currFileObj);
                     }
                     else if (type == "Music")
                     {
-                        // The following folder structure is required
-                        // Artist -> Album -> Song
-                        // or
-                        // Artist -> Album -> Disc # -> Song
-                        // Will only scrape albums for the newsletter.
-                        episode = season = item.GetParent();
-                        // Checks for multi-disc albums
-                        // where each disc is a separate sub-folder
-                        // Type will be "Folder" for the disc sub-folder
-                        if (season.IsFolder is true)
+                        song = item;
+                        album = item.GetParent();
+                        if (album.IsFolder is true)
                         {
-                            // Album
-                            episode = season = item.GetParent().GetParent();
-                            // Artist
-                            series = item.GetParent().GetParent().GetParent();
+                            album = song.GetParent().GetParent();
                         }
-                        else
-                        {
-                            // Artist
-                            series = item.GetParent().GetParent();
-                        }
+
+                        artist = album.GetParent();
+                        currFileObj.Type = type;
+                        currFileObj = MusicObj(song, album, artist, currFileObj);
                     }
                     else
                     {
                         logger.Error("Something went wrong..");
                         continue;
                     }
-
-                    logger.Debug($"ItemId: " + series.Id.ToString("N")); // series ItemId
-                    logger.Debug($"{type}: {series.Name}"); // Title
-                    logger.Debug($"LocationType: " + episode.LocationType.ToString());
-                    if (episode.LocationType.ToString() == "Virtual")
-                    {
-                        logger.Debug($"No physical path.. Skipping...");
-                        continue;
-                    }
-
-                    logger.Debug($"Season: {season.Name}"); // Season Name
-                    logger.Debug($"Episode Name: {episode.Name}"); // episode Name
-                    logger.Debug($"Episode Number: {episode.IndexNumber}"); // episode Name
-                    logger.Debug($"Overview: {series.Overview}"); // series overview
-                    logger.Debug($"ImageInfo: {series.PrimaryImagePath}");
-                    logger.Debug($"Filepath: " + episode.Path); // Filepath, episode.Path is cleaner, but may be empty
-
-                    // NEW PARAMS
-                    logger.Debug($"PremiereDate: {series.PremiereDate}"); // series PremiereDate
-                    logger.Debug($"OfficialRating: " + series.OfficialRating); // TV-14, TV-PG, etc
-                    // logger.Info($"CriticRating: " + series.CriticRating);
-                    // logger.Info($"CustomRating: " + series.CustomRating);
-                    logger.Debug($"CommunityRating: " + series.CommunityRating); // 8.5, 9.2, etc
-                    logger.Debug($"RunTime: " + (int)((float)episode.RunTimeTicks! / 10000 / 60000) + " minutes");
                 }
                 catch (Exception e)
                 {
@@ -232,54 +210,12 @@ public class Scraper
                     continue;
                 }
 
-                JsonFileObj currFileObj = new JsonFileObj();
-                currFileObj.Filename = episode.Path;
-                currFileObj.Title = series.Name;
-                currFileObj.Type = type;
-
-                if (series.PremiereDate is not null)
-                {
-                    currFileObj.PremiereYear = series.PremiereDate.ToString()!.Split(' ')[0].Split('/')[2]; // NEW {PremierYear}
-                    logger.Debug($"PremiereYear: {currFileObj.PremiereYear}");
-                }
-
-                currFileObj.RunTime = (int)((float)episode.RunTimeTicks / 10000 / 60000);
-                currFileObj.OfficialRating = series.OfficialRating;
-                currFileObj.CommunityRating = series.CommunityRating;
-
                 if (!InDatabase("CurrRunData", currFileObj.Filename.Replace("'", string.Empty, StringComparison.Ordinal)) && 
                     !InDatabase("CurrNewsletterData", currFileObj.Filename.Replace("'", string.Empty, StringComparison.Ordinal)) && 
                     !InDatabase("ArchiveData", currFileObj.Filename.Replace("'", string.Empty, StringComparison.Ordinal)))
                 {
                     try
                     {
-                        if (episode.IndexNumber is int && episode.IndexNumber is not null)
-                        {
-                            currFileObj.Episode = (int)episode.IndexNumber;
-                        }
-
-                        currFileObj.SeriesOverview = series.Overview;
-                        currFileObj.ItemID = series.Id.ToString("N");
-
-                        logger.Debug("Checking if Primary Image Exists for series");
-                        if (series.PrimaryImagePath != null)
-                        {
-                            logger.Debug("Primary Image series found!");
-                            currFileObj.PosterPath = series.PrimaryImagePath;
-                        }
-                        else if (episode.PrimaryImagePath != null)
-                        {
-                            logger.Debug("Primary Image series not found. Pulling from Episode");
-                            currFileObj.PosterPath = episode.PrimaryImagePath;
-                        }
-                        else
-                        {
-                            logger.Warn("Primary Poster not found..");
-                            logger.Warn("This may be due to filesystem not being formatted properly.");
-                            logger.Warn($"Make sure {currFileObj.Filename} follows the correct formatting below:");
-                            logger.Warn(".../MyLibraryName/Series_Name/Season#_or_Specials/Episode.{ext}");
-                        }
-
                         logger.Debug("Checking if PosterPath Exists");
                         if ((currFileObj.PosterPath != null) && (currFileObj.PosterPath.Length > 0))
                         {
@@ -294,19 +230,6 @@ public class Scraper
 
                             currFileObj.ImageURL = url;
                         }
-
-                        logger.Debug("Parsing Season Number");
-                        try
-                        {
-                            currFileObj.Season = int.Parse(season.Name.Split(' ')[1], CultureInfo.CurrentCulture);
-                        }
-                        catch (Exception e)
-                        {
-                            logger.Warn($"Encountered an error parsing Season Number for: {currFileObj.Filename}");
-                            logger.Debug(e);
-                            logger.Warn("Setting Season number to 0 (SPECIALS)");
-                            currFileObj.Season = 0;
-                        }
                     }
                     catch (Exception e)
                     {
@@ -318,21 +241,18 @@ public class Scraper
                         // save to "database" : Table currRunScanList
                         logger.Debug("Adding to CurrRunData DB...");
                         currFileObj = NoNull(currFileObj);
-                        db.ExecuteSQL("INSERT INTO CurrRunData (Filename, Title, Season, Episode, SeriesOverview, ImageURL, ItemID, PosterPath, Type, PremiereYear, RunTime, OfficialRating, CommunityRating) " +
+                        db.ExecuteSQL("INSERT INTO CurrRunData (Filename, Title, Album, Season, Episode, Overview, ImageURL, ItemID, PosterPath, Type) " +
                                 "VALUES (" +
                                     SanitizeDbItem(currFileObj.Filename) +
                                     "," + SanitizeDbItem(currFileObj!.Title) +
                                     "," + ((currFileObj?.Season is null) ? -1 : currFileObj.Season) +
                                     "," + ((currFileObj?.Episode is null) ? -1 : currFileObj.Episode) +
-                                    "," + SanitizeDbItem(currFileObj!.SeriesOverview) +
+                                    "," + ((currFileObj?.Album is null) ? -1 : currFileObj.Album) +
+                                    "," + SanitizeDbItem(currFileObj!.Overview) +
                                     "," + SanitizeDbItem(currFileObj!.ImageURL) +
                                     "," + SanitizeDbItem(currFileObj.ItemID) +
                                     "," + SanitizeDbItem(currFileObj!.PosterPath) +
                                     "," + SanitizeDbItem(currFileObj.Type) +
-                                    "," + SanitizeDbItem(currFileObj!.PremiereYear) + 
-                                    "," + ((currFileObj?.RunTime is null) ? -1 : currFileObj.RunTime) +
-                                    "," + SanitizeDbItem(currFileObj!.OfficialRating) +
-                                    "," + ((currFileObj?.CommunityRating is null) ? -1 : currFileObj.CommunityRating) +
                                 ");");
                         logger.Debug("Complete!");
                     }
@@ -343,6 +263,116 @@ public class Scraper
                 }
             }
         }
+    }
+
+    private JsonFileObj SeriesObj(BaseItem episode, BaseItem season, BaseItem series, JsonFileObj currFileObj)
+    {
+        currFileObj.Filename = episode.Path;
+        currFileObj.Title = series.GetParent().GetParent().Name;
+        currFileObj.Episode = episode.IndexNumber ?? 0;
+        currFileObj.Season = season.IndexNumber ?? 0;
+        currFileObj.Album = string.Empty;
+        currFileObj.Overview = series.Overview;
+        currFileObj.ItemID = episode.Id.ToString("N");
+
+        logger.Debug($"ItemId: " + currFileObj.ItemID); // series ItemId
+        logger.Debug($"{currFileObj.Type}: {currFileObj.Title}"); // Title
+
+        if (series.PrimaryImagePath != null)
+        {
+            logger.Debug("Primary Image series found!");
+            currFileObj.PosterPath = series.PrimaryImagePath;
+        }
+        else if (episode.PrimaryImagePath != null)
+        {
+            logger.Debug("Primary Image series not found. Pulling from Episode");
+            currFileObj.PosterPath = episode.PrimaryImagePath;
+        }
+        else
+        {
+            logger.Warn("Primary Poster not found..");
+            logger.Warn("This may be due to filesystem not being formatted properly.");
+            logger.Warn($"Make sure {currFileObj.Filename} follows the correct formatting below:");
+            logger.Warn(".../MyLibraryName/Series_Name/Season#_or_Specials/Episode.{ext}");
+        }
+
+        logger.Debug($"Season: {season.Name}"); // Season Name
+        logger.Debug($"Episode Name: {episode.Name}"); // episode Name
+        logger.Debug($"Episode Number: {episode.IndexNumber}"); // episode Name
+        logger.Debug($"Overview: {series.Overview}"); // series overview
+        logger.Debug($"ImageInfo: {series.PrimaryImagePath}");
+        logger.Debug($"Filepath: " + episode.Path); // Filepath, episode.Path is cleaner, but may be empty
+
+        // NEW PARAMS
+        logger.Debug($"PremiereDate: {series.PremiereDate}"); // series PremiereDate
+        logger.Debug($"OfficialRating: " + series.OfficialRating); // TV-14, TV-PG, etc
+        // logger.Info($"CriticRating: " + series.CriticRating);
+        // logger.Info($"CustomRating: " + series.CustomRating);
+        logger.Debug($"CommunityRating: " + series.CommunityRating); // 8.5, 9.2, etc
+
+        return currFileObj;
+    }
+
+    private JsonFileObj MovieObj(BaseItem movie, JsonFileObj currFileObj)
+    {
+        currFileObj.Filename = movie.Path;
+        currFileObj.Title = movie.Name;
+        currFileObj.Episode = -1;
+        currFileObj.Season = -1;
+        currFileObj.Album = string.Empty;
+        currFileObj.Overview = movie.Overview;
+        currFileObj.ItemID = movie.Id.ToString("N");
+
+        if (movie.PrimaryImagePath != null)
+        {
+            logger.Debug("Primary Image series found!");
+            currFileObj.PosterPath = movie.PrimaryImagePath;
+        }
+        else
+        {
+            logger.Warn("Primary Poster not found..");
+            logger.Warn("This may be due to filesystem not being formatted properly.");
+            logger.Warn($"Make sure {currFileObj.Filename} follows the correct formatting below:");
+            logger.Warn(".../MyLibraryName/Movie_Name/Movie.{ext}");
+        }
+
+        logger.Debug($"Movie: {movie.Name}"); // Season Name
+        logger.Debug($"Overview: {movie.Overview}"); // series overview
+        logger.Debug($"ImageInfo: {movie.PrimaryImagePath}");
+        logger.Debug($"Filepath: " + movie.Path); // Filepath, episode.Path is cleaner, but may be empty
+
+        return currFileObj;
+    }
+
+    private JsonFileObj MusicObj(BaseItem song, BaseItem album, BaseItem artist, JsonFileObj currFileObj)
+    {
+        currFileObj.Filename = album.Path;
+        currFileObj.Title = artist.Name;
+        currFileObj.Episode = -1;
+        currFileObj.Season = -1;
+        currFileObj.Album = album.Name;
+        currFileObj.Overview = album.Overview;
+        currFileObj.ItemID = album.Id.ToString("N");
+
+        if (artist.PrimaryImagePath != null)
+        {
+            logger.Debug("Primary Image series found!");
+            currFileObj.PosterPath = artist.PrimaryImagePath;
+        }
+        else
+        {
+            logger.Warn("Primary Poster not found..");
+            logger.Warn("This may be due to filesystem not being formatted properly.");
+            logger.Warn($"Make sure {currFileObj.Filename} follows the correct formatting below:");
+            logger.Warn(".../MyLibraryName/Movie_Name/Movie.{ext}");
+        }
+
+        logger.Debug($"Artist: {artist.Name}"); // Artist name
+        logger.Debug($"Overview: {album.Overview}"); // Album overview
+        logger.Debug($"ImageInfo: {album.PrimaryImagePath}");
+        logger.Debug($"Filepath: " + album.Path); // Filepath, episode.Path is cleaner, but may be empty
+
+        return currFileObj;
     }
 
     private JsonFileObj NoNull(JsonFileObj currFileObj)
@@ -357,9 +387,14 @@ public class Scraper
             currFileObj.Title = string.Empty;
         }
 
-        if (currFileObj.SeriesOverview == null)
+        if (currFileObj.Album == null)
         {
-            currFileObj.SeriesOverview = string.Empty;
+            currFileObj.Album = string.Empty;
+        }
+
+        if (currFileObj.Overview == null)
+        {
+            currFileObj.Overview = string.Empty;
         }
 
         if (currFileObj.ImageURL == null)

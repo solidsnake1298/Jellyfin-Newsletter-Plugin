@@ -94,42 +94,14 @@ public class SQLiteDatabase
                                 "Title TEXT," +
                                 "Season INT," +
                                 "Episode INT," +
-                                "SeriesOverview TEXT," +
+                                "Overview TEXT," +
                                 "ImageURL TEXT," +
                                 "ItemID TEXT," +
                                 "PosterPath TEXT," +
                                 "Type TEXT," +
-                                // "PremiereYear TEXT" +
-                                // "RunTime INT" +
-                                // "OfficialRating TEXT" +
-                                // "CommunityRating REAL" +
+                                "Album TEXT," +
                                 "PRIMARY KEY (Filename)" +
                             ");");
-
-                // ExecuteSQL("ALTER TABLE " + table + " ADD COLUMN Type TEXT;");
-                // logger.Debug("Altering Table not needed since V0.6.2.0");
-                // continue;
-                logger.Info($"Altering DB table: {table}");
-                // <TABLE_NAME, DATA_TYPE>
-                Dictionary<string, string> new_cols = new Dictionary<string, string>();
-                new_cols.Add("PremiereYear", "TEXT");
-                new_cols.Add("RunTime", "INT");
-                new_cols.Add("OfficialRating", "TEXT");
-                new_cols.Add("CommunityRating", "REAL");
-
-                foreach (KeyValuePair<string, string> col in new_cols)
-                {
-                    try
-                    {
-                        logger.Debug($"Adding Table Columns for DB updates...");
-                        ExecuteSQL($"ALTER TABLE {table} ADD COLUMN {col.Key} {col.Value};");
-                    }
-                    catch (SQLiteException sle)
-                    {
-                        // logger.Warn(sle);
-                        logger.Debug(sle);
-                    }
-                }
             }
         }
 

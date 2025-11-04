@@ -22,15 +22,12 @@ public class JsonFileObj
         Title = string.Empty;
         Season = 0;
         Episode = 0;
-        SeriesOverview = string.Empty;
+        Overview = string.Empty;
         ImageURL = string.Empty;
         ItemID = string.Empty;
         PosterPath = string.Empty;
         Type = string.Empty;
-        PremiereYear = string.Empty;
-        RunTime = 0;
-        OfficialRating = string.Empty;
-        CommunityRating = 0.0f;
+        Album = string.Empty;
     }
 
     public string Filename { get; set; }
@@ -45,7 +42,7 @@ public class JsonFileObj
 
     // public string Episode { get; set; }
 
-    public string SeriesOverview { get; set; }
+    public string Overview { get; set; }
 
     public string ImageURL { get; set; }
 
@@ -55,13 +52,7 @@ public class JsonFileObj
 
     public string Type { get; set; }
 
-    public string PremiereYear { get; set; }
-
-    public int RunTime { get; set; }
-
-    public string OfficialRating { get; set; }
-
-    public float? CommunityRating { get; set; }
+    public string Album { get; set; }
 
     public JsonFileObj ConvertToObj(IReadOnlyList<ResultSetValue> row)
     {
@@ -69,10 +60,11 @@ public class JsonFileObj
         // Title = string.Empty; 1
         // Season = 0; 2
         // Episode = 0; 3
-        // SeriesOverview = string.Empty; 4
+        // Overview = string.Empty; 4
         // ImageURL = string.Empty; 5
         // ItemID = string.Empty; 6
         // PosterPath = string.Empty; 7
+        // Album = string.Empty; 13
 
         logger = new Logger();
         JsonFileObj obj = new JsonFileObj()
@@ -81,15 +73,12 @@ public class JsonFileObj
             Title = row[1].ToString(),
             Season = int.Parse(row[2].ToString(), CultureInfo.CurrentCulture),
             Episode = int.Parse(row[3].ToString(), CultureInfo.CurrentCulture),
-            SeriesOverview = row[4].ToString(),
+            Overview = row[4].ToString(),
             ImageURL = row[5].ToString(),
             ItemID = row[6].ToString(),
             PosterPath = row[7].ToString(),
             Type = row[8].ToString(),
-            PremiereYear = row[9].ToString(),
-            RunTime = string.IsNullOrEmpty(row[10].ToString()) ? 0 : int.Parse(row[10].ToString(), CultureInfo.CurrentCulture),
-            OfficialRating = row[11].ToString(),
-            CommunityRating = string.IsNullOrEmpty(row[12].ToString()) ? 0.0f : float.Parse(row[12].ToString(), CultureInfo.CurrentCulture)
+            Album = row[9].ToString(),
         };
 
         return obj;
@@ -102,15 +91,12 @@ public class JsonFileObj
         item_dict.Add("{Title}", this.Title);
         item_dict.Add("{Season}", this.Season);
         item_dict.Add("{Episode}", this.Episode);
-        item_dict.Add("{SeriesOverview}", this.SeriesOverview);
+        item_dict.Add("{Overview}", this.Overview);
         item_dict.Add("{ImageURL}", this.ImageURL);
         item_dict.Add("{ItemID}", this.ItemID);
         item_dict.Add("{PosterPath}", this.PosterPath);
         item_dict.Add("{Type}", this.Type);
-        item_dict.Add("{PremiereYear}", this.PremiereYear);
-        item_dict.Add("{RunTime}", this.RunTime);
-        item_dict.Add("{OfficialRating}", this.OfficialRating);
-        item_dict!.Add("{CommunityRating}", this.CommunityRating);
+        item_dict.Add("{Album}", this.Album);
 
         return item_dict;        
     }
