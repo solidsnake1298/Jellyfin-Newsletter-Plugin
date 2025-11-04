@@ -177,17 +177,15 @@ public class Scraper
                         // Artist -> Album -> Song
                         // or
                         // Artist -> Album -> Disc # -> Song
-                        // Song
-                        episode = item;
-                        // Album
-                        season = item.GetParent();
+                        // Will only scrape albums for the newsletter.
+                        episode = season = item.GetParent();
                         // Checks for multi-disc albums
                         // where each disc is a separate sub-folder
-                        // Type will be "Other" for the disc sub-folder
+                        // Type will be "Folder" for the disc sub-folder
                         if (season.IsFolder is true)
                         {
                             // Album
-                            season = item.GetParent().GetParent();
+                            episode = season = item.GetParent().GetParent();
                             // Artist
                             series = item.GetParent().GetParent().GetParent();
                         }
