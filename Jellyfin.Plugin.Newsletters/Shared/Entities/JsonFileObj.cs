@@ -34,13 +34,9 @@ public class JsonFileObj
 
     public string Title { get; set; }
 
-    // public string Season { get; set; }
-
     public int Season { get; set; }
 
     public int Episode { get; set; }
-
-    // public string Episode { get; set; }
 
     public string Overview { get; set; }
 
