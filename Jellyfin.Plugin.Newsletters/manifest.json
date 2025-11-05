@@ -13,8 +13,8 @@
                 "changelog": "- SQL syntax error fix FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.2/newsletters_0.7.0.2.zip",
-                "checksum": "924a3c82d83629439b87bfe6a507406b",
-                "timestamp": "2025-11-05T13:55:51Z"
+                "checksum": "3733ba8d0f369581d1ce7fcb860898b2",
+                "timestamp": "2025-11-05T14:50:35Z"
             },
             {
                 "version": "0.7.0.1",
