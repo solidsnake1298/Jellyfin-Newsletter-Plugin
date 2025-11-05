@@ -13,7 +13,7 @@
                 "changelog": "- Added music support. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.1/newsletters_0.7.0.1.zip",
-                "checksum": "a85fc58c5fb3c4d2056c53a2d7409e1f",
+                "checksum": "016c02e48fbac3a072b7a5312da8f120",
                 "timestamp": "2025-11-05T00:04:23Z"
             }
         ]
