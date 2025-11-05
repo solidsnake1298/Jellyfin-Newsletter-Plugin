@@ -150,6 +150,7 @@ public class Scraper
     {
         logger.Info($"Parsing {type}..");
         BaseItem episode, season, series, song, album, artist, movie;
+        //BaseItem episode, season, series, song, movie;
         totalLibCount = items.Count;
         logger.Info($"Scan Size: {totalLibCount}");
         logger.Info($"Scanning '{type}'");
@@ -163,6 +164,7 @@ public class Scraper
                 JsonFileObj currFileObj = new JsonFileObj();
                 try
                 {
+                    logger.Debug($"LocationType: " + item.LocationType.ToString());
                     logger.Debug($"LocationType: " + item.LocationType.ToString());
                     if (item.LocationType.ToString() == "Virtual")
                     {
@@ -187,18 +189,14 @@ public class Scraper
                     else if (type == "Music")
                     {
                         song = item;
-                        album = item.GetParent();
-                        logger.Debug($"album: " + album.ToString());
-                        if (album.IsFolder is true)
-                        {
-                            logger.Debug($"Album is likely a disc # folder, get parent above that");
-                            logger.Debug($"album: " + album.ToString());
-                            album = song.GetParent().GetParent();
-                        }
-
+                        album = song.FindParent<MusicAlbum>();
                         artist = album.GetParent();
+                        logger.Debug($"Song: " + song.Name.ToString());
+                        logger.Debug($"Album: " + album.Name.ToString());
+                        logger.Debug($"Artist: " + artist.Name.ToString());
                         currFileObj.Type = type;
                         currFileObj = MusicObj(song, album, artist, currFileObj);
+                        //currFileObj = MusicObj(song, currFileObj);
                     }
                     else
                     {
@@ -342,31 +340,18 @@ public class Scraper
 
     private JsonFileObj MusicObj(BaseItem song, BaseItem album, BaseItem artist, JsonFileObj currFileObj)
     {
-        currFileObj.Filename = album.Path;
-        currFileObj.Title = artist.Name;
+        currFileObj.Filename = song.Path;
+        currFileObj.Title = artist.Name.ToString();
         currFileObj.Episode = -1;
         currFileObj.Season = -1;
-        currFileObj.Album = album.Name;
-        currFileObj.Overview = album.Overview;
-        currFileObj.ItemID = album.Id.ToString("N");
+        currFileObj.Album = album.Name.ToString();
+        currFileObj.Overview = string.Empty;
+        currFileObj.ItemID = song.Id.ToString("N");
+        currFileObj.PosterPath = song.PrimaryImagePath;
 
-        if (artist.PrimaryImagePath != null)
-        {
-            logger.Debug("Primary Image series found!");
-            currFileObj.PosterPath = artist.PrimaryImagePath;
-        }
-        else
-        {
-            logger.Warn("Primary Poster not found..");
-            logger.Warn("This may be due to filesystem not being formatted properly.");
-            logger.Warn($"Make sure {currFileObj.Filename} follows the correct formatting below:");
-            logger.Warn(".../MyLibraryName/Movie_Name/Movie.{ext}");
-        }
-
-        logger.Debug($"Artist: {artist.Name}"); // Artist name
-        logger.Debug($"Overview: {album.Overview}"); // Album overview
-        logger.Debug($"ImageInfo: {album.PrimaryImagePath}");
-        logger.Debug($"Filepath: " + album.Path); // Filepath, episode.Path is cleaner, but may be empty
+        logger.Debug($"Artist: {artist.Name.ToString()}"); // Artist name
+        logger.Debug($"ImageInfo: {song.PrimaryImagePath}");
+        logger.Debug($"Filepath: " + song.Path); // Filepath, episode.Path is cleaner, but may be empty
 
         return currFileObj;
     }
