@@ -72,6 +72,7 @@ public class SQLiteDatabase
         {
             // Filename = string.Empty;
             // Title = string.Empty;
+            // Album = string.Empty;
             // Season = 0;
             // Episode = 0;
             // SeriesOverview = string.Empty;
@@ -92,6 +93,7 @@ public class SQLiteDatabase
                 ExecuteSQL("create table if not exists " + table + " (" +
                                 "Filename TEXT NOT NULL," +
                                 "Title TEXT," +
+                                "Album TEXT," +
                                 "Season INT," +
                                 "Episode INT," +
                                 "Overview TEXT," +
@@ -99,7 +101,6 @@ public class SQLiteDatabase
                                 "ItemID TEXT," +
                                 "PosterPath TEXT," +
                                 "Type TEXT," +
-                                "Album TEXT," +
                                 "PRIMARY KEY (Filename)" +
                             ");");
             }

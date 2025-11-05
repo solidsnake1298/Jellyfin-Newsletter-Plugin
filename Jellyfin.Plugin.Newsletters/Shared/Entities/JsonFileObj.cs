@@ -34,6 +34,8 @@ public class JsonFileObj
 
     public string Title { get; set; }
 
+    public string Album { get; set; }
+
     public int Season { get; set; }
 
     public int Episode { get; set; }
@@ -48,19 +50,18 @@ public class JsonFileObj
 
     public string Type { get; set; }
 
-    public string Album { get; set; }
-
     public JsonFileObj ConvertToObj(IReadOnlyList<ResultSetValue> row)
     {
         // Filename = string.Empty; 0
         // Title = string.Empty; 1
-        // Season = 0; 2
-        // Episode = 0; 3
-        // Overview = string.Empty; 4
-        // ImageURL = string.Empty; 5
-        // ItemID = string.Empty; 6
-        // PosterPath = string.Empty; 7
-        // Album = string.Empty; 13
+        // Album = string.Empty; 2
+        // Season = 0; 3
+        // Episode = 0; 4
+        // Overview = string.Empty; 5
+        // ImageURL = string.Empty; 6
+        // ItemID = string.Empty; 7
+        // PosterPath = string.Empty; 8
+        // Album = string.Empty; 9
 
         logger = new Logger();
         JsonFileObj obj = new JsonFileObj()
@@ -74,7 +75,7 @@ public class JsonFileObj
             ImageURL = row[6].ToString(),
             ItemID = row[7].ToString(),
             PosterPath = row[8].ToString(),
-            Type = row[8].ToString()
+            Type = row[9].ToString()
         };
 
         return obj;
