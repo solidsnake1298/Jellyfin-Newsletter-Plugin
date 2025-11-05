@@ -20,6 +20,7 @@ public class JsonFileObj
     {
         Filename = string.Empty;
         Title = string.Empty;
+        Album = string.Empty;
         Season = 0;
         Episode = 0;
         Overview = string.Empty;
@@ -27,7 +28,6 @@ public class JsonFileObj
         ItemID = string.Empty;
         PosterPath = string.Empty;
         Type = string.Empty;
-        Album = string.Empty;
     }
 
     public string Filename { get; set; }
@@ -67,14 +67,14 @@ public class JsonFileObj
         {
             Filename = row[0].ToString(),
             Title = row[1].ToString(),
-            Season = int.Parse(row[2].ToString(), CultureInfo.CurrentCulture),
-            Episode = int.Parse(row[3].ToString(), CultureInfo.CurrentCulture),
-            Overview = row[4].ToString(),
-            ImageURL = row[5].ToString(),
-            ItemID = row[6].ToString(),
-            PosterPath = row[7].ToString(),
-            Type = row[8].ToString(),
-            Album = row[9].ToString(),
+            Album = row[2].ToString(),
+            Season = int.Parse(row[3].ToString(), CultureInfo.CurrentCulture),
+            Episode = int.Parse(row[4].ToString(), CultureInfo.CurrentCulture),
+            Overview = row[5].ToString(),
+            ImageURL = row[6].ToString(),
+            ItemID = row[7].ToString(),
+            PosterPath = row[8].ToString(),
+            Type = row[8].ToString()
         };
 
         return obj;
@@ -85,6 +85,7 @@ public class JsonFileObj
         Dictionary<string, object?> item_dict = new Dictionary<string, object?>();
         item_dict.Add("{Filename}", this.Filename);
         item_dict.Add("{Title}", this.Title);
+        item_dict.Add("{Album}", this.Album);
         item_dict.Add("{Season}", this.Season);
         item_dict.Add("{Episode}", this.Episode);
         item_dict.Add("{Overview}", this.Overview);
@@ -92,7 +93,6 @@ public class JsonFileObj
         item_dict.Add("{ItemID}", this.ItemID);
         item_dict.Add("{PosterPath}", this.PosterPath);
         item_dict.Add("{Type}", this.Type);
-        item_dict.Add("{Album}", this.Album);
 
         return item_dict;        
     }
