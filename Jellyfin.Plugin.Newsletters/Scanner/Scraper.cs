@@ -176,7 +176,7 @@ public class Scraper
                         season = item.GetParent();
                         series = item.GetParent().GetParent();
                         currFileObj.Type = type;
-                        currFileObj = SeriesObj(episode, series, season, currFileObj);
+                        currFileObj = SeriesObj(episode, season, series, currFileObj);
                     }
                     else if (type == "Movie")
                     {
@@ -245,7 +245,7 @@ public class Scraper
                                 "VALUES (" +
                                     SanitizeDbItem(currFileObj.Filename) +
                                     "," + SanitizeDbItem(currFileObj!.Title) +
-                                    "," + ((currFileObj?.Album is null) ? -1 : currFileObj.Album) +
+                                    "," + SanitizeDbItem(currFileObj!.Album) +
                                     "," + ((currFileObj?.Season is null) ? -1 : currFileObj.Season) +
                                     "," + ((currFileObj?.Episode is null) ? -1 : currFileObj.Episode) +
                                     "," + SanitizeDbItem(currFileObj!.Overview) +
