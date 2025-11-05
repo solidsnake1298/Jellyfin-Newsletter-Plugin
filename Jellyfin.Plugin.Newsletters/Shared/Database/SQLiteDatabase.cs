@@ -75,7 +75,7 @@ public class SQLiteDatabase
             // Album = string.Empty;
             // Season = 0;
             // Episode = 0;
-            // SeriesOverview = string.Empty;
+            // Overview = string.Empty;
             // ImageURL = string.Empty;
             // ItemID = string.Empty;
             // PosterPath = string.Empty;

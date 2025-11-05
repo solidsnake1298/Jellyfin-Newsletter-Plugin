@@ -188,8 +188,11 @@ public class Scraper
                     {
                         song = item;
                         album = item.GetParent();
+                        logger.Debug($"album: " + album.ToString());
                         if (album.IsFolder is true)
                         {
+                            logger.Debug($"Album is likely a disc # folder, get parent above that");
+                            logger.Debug($"album: " + album.ToString());
                             album = song.GetParent().GetParent();
                         }
 
@@ -273,7 +276,7 @@ public class Scraper
         currFileObj.Season = season.IndexNumber ?? 0;
         currFileObj.Album = string.Empty;
         currFileObj.Overview = series.Overview;
-        currFileObj.ItemID = episode.Id.ToString("N");
+        currFileObj.ItemID = series.Id.ToString("N");
 
         logger.Debug($"ItemId: " + currFileObj.ItemID); // series ItemId
         logger.Debug($"{currFileObj.Type}: {currFileObj.Title}"); // Title

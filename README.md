@@ -160,7 +160,7 @@ Some of these may not interest that average user (if anyone), but I figured I wo
 - {Date} - Auto-generated date of Newsletter email generation
 - {SeasonEpsInfo} - This tag is the Plugin-generated Season/Episode data
 - {Title} - Title of Movie/Series
-- {SeriesOverview} - Movie/Series overview
+- {Overview} - Movie/Series overview
 - {ImageURL} - Poster image for the Movie/Series
 - {Type} - Item type (Movie or Series)
 - {PremiereYear} - Year Movie/Series was Premiered
