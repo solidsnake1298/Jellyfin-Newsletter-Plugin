@@ -13,7 +13,7 @@
                 "changelog": "- Fixed Series poster.  Added debugging lines to troubleshoot music scraping the library folder.  Replaced SeriesOverview in HTML builder and templates with new Overview. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.6/newsletters_0.7.0.6.zip",
-                "checksum": "ed5f960079bbf36b1f45a57eb4ef62da",
+                "checksum": "686a81b90156ae24e6c50cbd36698e51",
                 "timestamp": "2025-11-05T23:30:27Z"
             },
             {
