@@ -245,9 +245,9 @@ public class Scraper
                                 "VALUES (" +
                                     SanitizeDbItem(currFileObj.Filename) +
                                     "," + SanitizeDbItem(currFileObj!.Title) +
+                                    "," + ((currFileObj?.Album is null) ? -1 : currFileObj.Album) +
                                     "," + ((currFileObj?.Season is null) ? -1 : currFileObj.Season) +
                                     "," + ((currFileObj?.Episode is null) ? -1 : currFileObj.Episode) +
-                                    "," + ((currFileObj?.Album is null) ? -1 : currFileObj.Album) +
                                     "," + SanitizeDbItem(currFileObj!.Overview) +
                                     "," + SanitizeDbItem(currFileObj!.ImageURL) +
                                     "," + SanitizeDbItem(currFileObj.ItemID) +
@@ -268,7 +268,7 @@ public class Scraper
     private JsonFileObj SeriesObj(BaseItem episode, BaseItem season, BaseItem series, JsonFileObj currFileObj)
     {
         currFileObj.Filename = episode.Path;
-        currFileObj.Title = series.GetParent().GetParent().Name;
+        currFileObj.Title = series.Name;
         currFileObj.Episode = episode.IndexNumber ?? 0;
         currFileObj.Season = season.IndexNumber ?? 0;
         currFileObj.Album = string.Empty;
@@ -302,13 +302,6 @@ public class Scraper
         logger.Debug($"Overview: {series.Overview}"); // series overview
         logger.Debug($"ImageInfo: {series.PrimaryImagePath}");
         logger.Debug($"Filepath: " + episode.Path); // Filepath, episode.Path is cleaner, but may be empty
-
-        // NEW PARAMS
-        logger.Debug($"PremiereDate: {series.PremiereDate}"); // series PremiereDate
-        logger.Debug($"OfficialRating: " + series.OfficialRating); // TV-14, TV-PG, etc
-        // logger.Info($"CriticRating: " + series.CriticRating);
-        // logger.Info($"CustomRating: " + series.CustomRating);
-        logger.Debug($"CommunityRating: " + series.CommunityRating); // 8.5, 9.2, etc
 
         return currFileObj;
     }
