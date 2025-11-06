@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Data.Enums;
+using Jellyfin.Database.Implementations.Entities.Libraries;
 using Jellyfin.Plugin.Newsletters.Configuration;
 using Jellyfin.Plugin.Newsletters.LOGGER;
 using Jellyfin.Plugin.Newsletters.Scanner.NLImageHandler;
@@ -18,6 +19,8 @@ using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Audio;
+using TVEntity = MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -133,9 +136,13 @@ public class Scraper
 
         if (config.MusicEnabled)
         {
-            InternalItemsQuery audio = new InternalItemsQuery();
-            audio.IncludeItemTypes = new[] { BaseItemKind.Audio };
-            BuildObjs(libManager.GetItemList(audio).ToList(), "Music"); // populate music
+            //InternalItemsQuery audio = new InternalItemsQuery();
+            //audio.IncludeItemTypes = new[] { BaseItemKind.Audio };
+            //BuildObjs(libManager.GetItemList(audio).ToList(), "Music"); // populate music
+
+            InternalItemsQuery album = new InternalItemsQuery();
+            album.IncludeItemTypes = new[] { BaseItemKind.MusicAlbum };
+            BuildObjs(libManager.GetItemList(album).ToList(), "Album"); // populate music
 
             // BuildObjs(
             //     libManager.GetItemList(new InternalItemsQuery
@@ -149,7 +156,7 @@ public class Scraper
     public void BuildObjs(List<BaseItem> items, string type)
     {
         logger.Info($"Parsing {type}..");
-        BaseItem episode, season, series, song, album, artist, movie;
+        BaseItem episode, season, series, album, artist, movie;
         //BaseItem episode, season, series, song, movie;
         totalLibCount = items.Count;
         logger.Info($"Scan Size: {totalLibCount}");
@@ -165,7 +172,8 @@ public class Scraper
                 try
                 {
                     logger.Debug($"LocationType: " + item.LocationType.ToString());
-                    logger.Debug($"LocationType: " + item.LocationType.ToString());
+                    logger.Debug($"LocationType: " + item.Path.ToString());
+                    
                     if (item.LocationType.ToString() == "Virtual")
                     {
                         logger.Debug($"No physical path.. Skipping...");
@@ -174,29 +182,27 @@ public class Scraper
 
                     if (type == "Series")
                     {
+                        logger.Debug($"Found Series");
                         episode = item;
-                        season = item.GetParent();
-                        series = item.GetParent().GetParent();
+                        season = episode.FindParent<TVEntity.Season>();
+                        series = episode.FindParent<TVEntity.Series>();
                         currFileObj.Type = type;
                         currFileObj = SeriesObj(episode, season, series, currFileObj);
                     }
                     else if (type == "Movie")
                     {
+                        logger.Debug($"Found Movie");
                         movie = item;
                         currFileObj.Type = type;
                         currFileObj = MovieObj(movie, currFileObj);
                     }
-                    else if (type == "Music")
+                    else if (type == "Album")
                     {
-                        song = item;
-                        album = song.FindParent<MusicAlbum>();
-                        artist = album.GetParent();
-                        logger.Debug($"Song: " + song.Name.ToString());
-                        logger.Debug($"Album: " + album.Name.ToString());
-                        logger.Debug($"Artist: " + artist.Name.ToString());
+                        logger.Debug($"Found Album");
+                        album = item;
+                        artist = album.FindParent<MusicArtist>();
                         currFileObj.Type = type;
-                        currFileObj = MusicObj(song, album, artist, currFileObj);
-                        //currFileObj = MusicObj(song, currFileObj);
+                        currFileObj = MusicObj(album, artist, currFileObj);
                     }
                     else
                     {
@@ -338,60 +344,33 @@ public class Scraper
         return currFileObj;
     }
 
-    private JsonFileObj MusicObj(BaseItem song, BaseItem album, BaseItem artist, JsonFileObj currFileObj)
+    private JsonFileObj MusicObj(BaseItem album, BaseItem artist, JsonFileObj currFileObj)
     {
-        currFileObj.Filename = song.Path;
+        currFileObj.Filename = album.Path;
         currFileObj.Title = artist.Name.ToString();
         currFileObj.Episode = -1;
         currFileObj.Season = -1;
         currFileObj.Album = album.Name.ToString();
         currFileObj.Overview = string.Empty;
-        currFileObj.ItemID = song.Id.ToString("N");
-        currFileObj.PosterPath = song.PrimaryImagePath;
+        currFileObj.ItemID = album.Id.ToString("N");
+        currFileObj.PosterPath = album.PrimaryImagePath;
 
         logger.Debug($"Artist: {artist.Name.ToString()}"); // Artist name
-        logger.Debug($"ImageInfo: {song.PrimaryImagePath}");
-        logger.Debug($"Filepath: " + song.Path); // Filepath, episode.Path is cleaner, but may be empty
+        logger.Debug($"ImageInfo: {artist.PrimaryImagePath}");
+        logger.Debug($"Filepath: " + album.Path); // Filepath, episode.Path is cleaner, but may be empty
 
         return currFileObj;
     }
 
     private JsonFileObj NoNull(JsonFileObj currFileObj)
     {
-        if (currFileObj.Filename == null)
-        {
-            currFileObj.Filename = string.Empty;
-        }
-
-        if (currFileObj.Title == null)
-        {
-            currFileObj.Title = string.Empty;
-        }
-
-        if (currFileObj.Album == null)
-        {
-            currFileObj.Album = string.Empty;
-        }
-
-        if (currFileObj.Overview == null)
-        {
-            currFileObj.Overview = string.Empty;
-        }
-
-        if (currFileObj.ImageURL == null)
-        {
-            currFileObj.ImageURL = string.Empty;
-        }
-
-        if (currFileObj.ItemID == null)
-        {
-            currFileObj.Filename = string.Empty;
-        }
-
-        if (currFileObj.PosterPath == null)
-        {
-            currFileObj.PosterPath = string.Empty;
-        }
+        currFileObj.Filename ??= string.Empty;
+        currFileObj.Title ??= string.Empty;
+        currFileObj.Album ??= string.Empty;
+        currFileObj.Overview ??= string.Empty;
+        currFileObj.ImageURL ??= string.Empty;
+        currFileObj.ItemID ??= string.Empty;
+        currFileObj.PosterPath ??= string.Empty;
 
         return currFileObj;
     }
