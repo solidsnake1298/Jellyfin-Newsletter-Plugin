@@ -353,7 +353,7 @@ public class Scraper
         currFileObj.Album = album.Name.ToString();
         currFileObj.Overview = string.Empty;
         currFileObj.ItemID = album.Id.ToString("N");
-        currFileObj.PosterPath = album.PrimaryImagePath;
+        currFileObj.PosterPath = artist.PrimaryImagePath;
 
         logger.Debug($"Artist: {artist.Name.ToString()}"); // Artist name
         logger.Debug($"ImageInfo: {artist.PrimaryImagePath}");
