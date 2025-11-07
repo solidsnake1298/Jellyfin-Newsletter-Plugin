@@ -20,12 +20,11 @@ using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
-using TVEntity = MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using TVEntity = MediaBrowser.Controller.Entities.TV;
 
 // using Microsoft.Extensions.Logging;
 
@@ -36,9 +35,6 @@ public class Scraper
     // Global Vars
     // Readonly
     private readonly PluginConfiguration config;
-    // private readonly string currRunScanList;
-    // private readonly string archiveFile;
-    // private readonly string currNewsletterDataFile;
     private readonly ILibraryManager libManager;
 
     // Non-readonly
@@ -50,7 +46,6 @@ public class Scraper
     private Logger logger;
     private IProgress<double> progress;
     private CancellationToken cancelToken;
-    // private List<JsonFileObj> archiveObj;
 
     public Scraper(ILibraryManager libraryManager, IProgress<double> passedProgress, CancellationToken cancellationToken)
     {
@@ -78,14 +73,13 @@ public class Scraper
     }
 
     // This is the main function
-    public Task GetSeriesData()
+    public Task GetNewsletterData()
     {
         logger.Info("Gathering Data...");
         try
         {
             db.CreateConnection();
             BuildJsonObjsToCurrScanfile();
-            CopyCurrRunDataToNewsletterData();
         }
         catch (Exception e)
         {
@@ -117,7 +111,7 @@ public class Scraper
             //     {
             //         IncludeItemTypes = new[] { BaseItemKind.Episode }
             //     }),
-            //     "Series"); 
+            //     "Series");
         }
 
         if (config.MoviesEnabled)
@@ -136,13 +130,9 @@ public class Scraper
 
         if (config.MusicEnabled)
         {
-            //InternalItemsQuery audio = new InternalItemsQuery();
-            //audio.IncludeItemTypes = new[] { BaseItemKind.Audio };
-            //BuildObjs(libManager.GetItemList(audio).ToList(), "Music"); // populate music
-
             InternalItemsQuery album = new InternalItemsQuery();
             album.IncludeItemTypes = new[] { BaseItemKind.MusicAlbum };
-            BuildObjs(libManager.GetItemList(album).ToList(), "Album"); // populate music
+            BuildObjs(libManager.GetItemList(album).ToList(), "Album"); // populate music albums
 
             // BuildObjs(
             //     libManager.GetItemList(new InternalItemsQuery
@@ -157,7 +147,6 @@ public class Scraper
     {
         logger.Info($"Parsing {type}..");
         BaseItem episode, season, series, album, artist, movie;
-        //BaseItem episode, season, series, song, movie;
         totalLibCount = items.Count;
         logger.Info($"Scan Size: {totalLibCount}");
         logger.Info($"Scanning '{type}'");
@@ -166,7 +155,8 @@ public class Scraper
             logger.Debug("---------------");
             currCount++;
             progress.Report((double)currCount / (double)totalLibCount * 100);
-            if (item is not null)
+            if ((item is not null) && 
+                !InDatabase(item.Path.Replace("'", string.Empty, StringComparison.Ordinal)))
             {
                 JsonFileObj currFileObj = new JsonFileObj();
                 try
@@ -209,6 +199,20 @@ public class Scraper
                         logger.Error("Something went wrong..");
                         continue;
                     }
+
+                    logger.Debug($"Checking if PosterPath Exists");
+                    if ((currFileObj.PosterPath != null) && (currFileObj.PosterPath.Length > 0))
+                    {
+                        string url = imageHandler.FetchImagePoster(currFileObj);
+                        logger.Debug("URL: " + url);
+
+                        if ((url == "429") || (url == "ERR"))
+                        {
+                            logger.Debug("URL is not attainable at this time. Stopping scan.. Will resume during next scan.");
+                        }
+
+                        currFileObj.ImageURL = url;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -216,58 +220,32 @@ public class Scraper
                     logger.Error(e);
                     continue;
                 }
-
-                if (!InDatabase("CurrRunData", currFileObj.Filename.Replace("'", string.Empty, StringComparison.Ordinal)) && 
-                    !InDatabase("CurrNewsletterData", currFileObj.Filename.Replace("'", string.Empty, StringComparison.Ordinal)) && 
-                    !InDatabase("ArchiveData", currFileObj.Filename.Replace("'", string.Empty, StringComparison.Ordinal)))
+                finally
                 {
-                    try
-                    {
-                        logger.Debug("Checking if PosterPath Exists");
-                        if ((currFileObj.PosterPath != null) && (currFileObj.PosterPath.Length > 0))
-                        {
-                            string url = SetImageURL(currFileObj);
-
-                            if ((url == "429") || (url == "ERR"))
-                            {
-                                logger.Debug("URL is not attainable at this time. Stopping scan.. Will resume during next scan.");
-                                logger.Debug("Not processing current file: " + currFileObj.Filename);
-                                break;
-                            }
-
-                            currFileObj.ImageURL = url;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        logger.Error($"Encountered an error parsing: {currFileObj.Filename}");
-                        logger.Error(e);
-                    }
-                    finally
-                    {
-                        // save to "database" : Table currRunScanList
-                        logger.Debug("Adding to CurrRunData DB...");
-                        currFileObj = NoNull(currFileObj);
-                        db.ExecuteSQL("INSERT INTO CurrRunData (Filename, Title, Album, Season, Episode, Overview, ImageURL, ItemID, PosterPath, Type) " +
-                                "VALUES (" +
-                                    SanitizeDbItem(currFileObj.Filename) +
-                                    "," + SanitizeDbItem(currFileObj!.Title) +
-                                    "," + SanitizeDbItem(currFileObj!.Album) +
-                                    "," + ((currFileObj?.Season is null) ? -1 : currFileObj.Season) +
-                                    "," + ((currFileObj?.Episode is null) ? -1 : currFileObj.Episode) +
-                                    "," + SanitizeDbItem(currFileObj!.Overview) +
-                                    "," + SanitizeDbItem(currFileObj!.ImageURL) +
-                                    "," + SanitizeDbItem(currFileObj.ItemID) +
-                                    "," + SanitizeDbItem(currFileObj!.PosterPath) +
-                                    "," + SanitizeDbItem(currFileObj.Type) +
-                                ");");
-                        logger.Debug("Complete!");
-                    }
+                    // save to "database" : Table currRunScanList
+                    logger.Debug("Adding to NewsletterData DB...");
+                    currFileObj = NoNull(currFileObj);
+                    db.ExecuteSQL("INSERT INTO NewsletterData (Filename, Title, Album, Season, Episode, Overview, ImageURL, ItemID, PosterPath, Type, Emailed) " +
+                            "VALUES (" +
+                                SanitizeDbItem(currFileObj.Filename) +
+                                "," + SanitizeDbItem(currFileObj!.Title) +
+                                "," + SanitizeDbItem(currFileObj!.Album) +
+                                "," + ((currFileObj?.Season is null) ? -1 : currFileObj.Season) +
+                                "," + ((currFileObj?.Episode is null) ? -1 : currFileObj.Episode) +
+                                "," + SanitizeDbItem(currFileObj!.Overview) +
+                                "," + SanitizeDbItem(currFileObj!.ImageURL) +
+                                "," + SanitizeDbItem(currFileObj.ItemID) +
+                                "," + SanitizeDbItem(currFileObj!.PosterPath) +
+                                "," + SanitizeDbItem(currFileObj.Type) +
+                                "," + ((currFileObj?.Emailed is null) ? 0 : currFileObj.Emailed) +
+                            ");");
+                    logger.Debug("Complete!");
                 }
-                else
-                {
-                    logger.Debug("\"" + currFileObj.Filename + "\" has already been processed either by Previous or Current Newsletter!");
-                }
+            }
+            else
+            {
+                logger.Debug("\"" + item.Path + "\" has already been processed either by Previous or Current Newsletter!");
+                continue;
             }
         }
     }
@@ -276,14 +254,15 @@ public class Scraper
     {
         currFileObj.Filename = episode.Path;
         currFileObj.Title = series.Name;
-        currFileObj.Episode = episode.IndexNumber ?? 0;
-        currFileObj.Season = season.IndexNumber ?? 0;
+        currFileObj.Episode = (episode.IndexNumber is null) ? 0 : (int)episode.IndexNumber;
+        currFileObj.Season = (season.IndexNumber is null) ? 0 : (int)season.IndexNumber;
         currFileObj.Album = string.Empty;
         currFileObj.Overview = series.Overview;
         currFileObj.ItemID = series.Id.ToString("N");
+        currFileObj.Emailed = 0;
 
-        logger.Debug($"ItemId: " + currFileObj.ItemID); // series ItemId
-        logger.Debug($"{currFileObj.Type}: {currFileObj.Title}"); // Title
+        logger.Debug($"ItemId: " + currFileObj.ItemID); // Series ItemId
+        logger.Debug($"{currFileObj.Type}: {currFileObj.Title}"); // Series Title
 
         if (series.PrimaryImagePath != null)
         {
@@ -303,12 +282,12 @@ public class Scraper
             logger.Warn(".../MyLibraryName/Series_Name/Season#_or_Specials/Episode.{ext}");
         }
 
-        logger.Debug($"Season: {season.Name}"); // Season Name
-        logger.Debug($"Episode Name: {episode.Name}"); // episode Name
-        logger.Debug($"Episode Number: {episode.IndexNumber}"); // episode Name
-        logger.Debug($"Overview: {series.Overview}"); // series overview
+        logger.Debug($"Season: {season.IndexNumber}");
+        logger.Debug($"Episode Name: {episode.Name}");
+        logger.Debug($"Episode Number: {episode.IndexNumber}");
+        logger.Debug($"Overview: {series.Overview}");
         logger.Debug($"ImageInfo: {series.PrimaryImagePath}");
-        logger.Debug($"Filepath: " + episode.Path); // Filepath, episode.Path is cleaner, but may be empty
+        logger.Debug($"Filepath: " + episode.Path);
 
         return currFileObj;
     }
@@ -322,6 +301,7 @@ public class Scraper
         currFileObj.Album = string.Empty;
         currFileObj.Overview = movie.Overview;
         currFileObj.ItemID = movie.Id.ToString("N");
+        currFileObj.Emailed = 0;
 
         if (movie.PrimaryImagePath != null)
         {
@@ -336,10 +316,10 @@ public class Scraper
             logger.Warn(".../MyLibraryName/Movie_Name/Movie.{ext}");
         }
 
-        logger.Debug($"Movie: {movie.Name}"); // Season Name
-        logger.Debug($"Overview: {movie.Overview}"); // series overview
+        logger.Debug($"Movie: {movie.Name}");
+        logger.Debug($"Overview: {movie.Overview}");
         logger.Debug($"ImageInfo: {movie.PrimaryImagePath}");
-        logger.Debug($"Filepath: " + movie.Path); // Filepath, episode.Path is cleaner, but may be empty
+        logger.Debug($"Filepath: " + movie.Path);
 
         return currFileObj;
     }
@@ -354,10 +334,11 @@ public class Scraper
         currFileObj.Overview = string.Empty;
         currFileObj.ItemID = album.Id.ToString("N");
         currFileObj.PosterPath = artist.PrimaryImagePath;
+        currFileObj.Emailed = 0;
 
-        logger.Debug($"Artist: {artist.Name.ToString()}"); // Artist name
+        logger.Debug($"Artist: {artist.Name.ToString()}");
         logger.Debug($"ImageInfo: {artist.PrimaryImagePath}");
-        logger.Debug($"Filepath: " + album.Path); // Filepath, episode.Path is cleaner, but may be empty
+        logger.Debug($"Filepath: " + album.Path);
 
         return currFileObj;
     }
@@ -371,88 +352,26 @@ public class Scraper
         currFileObj.ImageURL ??= string.Empty;
         currFileObj.ItemID ??= string.Empty;
         currFileObj.PosterPath ??= string.Empty;
+        currFileObj.Type ??= string.Empty;
 
         return currFileObj;
     }
 
-    private bool InDatabase(string tableName, string fileName)
+    private bool InDatabase(string fileName)
     {
-        foreach (var row in db.Query("SELECT COUNT(*) FROM " + tableName + " WHERE Filename='" + fileName + "';"))
+        foreach (var row in db.Query("SELECT COUNT(*) FROM NewsletterData WHERE Filename='" + fileName + "';"))
         {
             if (row is not null)
             {
-                if (int.Parse(row[0].ToString(), CultureInfo.CurrentCulture) > 0)
+                if (int.TryParse(row[0].ToString(), out var x) && x > 0)
                 {
-                    logger.Debug(tableName + " Size: " + row[0].ToString());
+                    logger.Debug("NewsletterData Size: " + row[0].ToString());
                     return true;
                 }
             }
         }
 
         return false;
-    }
-
-    private string SetImageURL(JsonFileObj currObj)
-    {
-        JsonFileObj fileObj;
-        string currTitle = currObj.Title.Replace("'", string.Empty, StringComparison.Ordinal);
-
-        // check if URL for series already exists CurrRunData table
-        foreach (var row in db.Query("SELECT * FROM CurrRunData;"))
-        {
-            if (row is not null)
-            {
-                fileObj = jsonHelper.ConvertToObj(row);
-                if ((fileObj is not null) && (fileObj.Title == currTitle) && (fileObj.ImageURL.Length > 0))
-                {
-                    logger.Debug("Found Current Scan of URL for " + currTitle + " :: " + fileObj.ImageURL);
-                    return fileObj.ImageURL;
-                }
-            }
-        }
-
-        // check if URL for series already exists CurrNewsletterData table
-        logger.Debug("Checking if exists in CurrNewsletterData");
-        foreach (var row in db.Query("SELECT * FROM CurrNewsletterData;"))
-        {
-            if (row is not null)
-            {
-                fileObj = jsonHelper.ConvertToObj(row);
-                if ((fileObj is not null) && (fileObj.Title == currTitle) && (fileObj.ImageURL.Length > 0))
-                {
-                    logger.Debug("Found Current Scan of URL for " + currTitle + " :: " + fileObj.ImageURL);
-                    return fileObj.ImageURL;
-                }
-            }
-        }
-
-        // check if URL for series already exists ArchiveData table
-        foreach (var row in db.Query("SELECT * FROM ArchiveData;"))
-        {
-            if (row is not null)
-            {
-                fileObj = jsonHelper.ConvertToObj(row);
-                if ((fileObj is not null) && (fileObj.Title == currTitle) && (fileObj.ImageURL.Length > 0))
-                {
-                    logger.Debug("Found Current Scan of URL for " + currTitle + " :: " + fileObj.ImageURL);
-                    return fileObj.ImageURL;
-                }
-            }
-        }
-
-        logger.Debug("Uploading poster...");
-        logger.Debug(currObj.ItemID);
-        logger.Debug(currObj.PosterPath);
-        // return string.Empty;
-        return imageHandler.FetchImagePoster(currObj);
-    }
-
-    private void CopyCurrRunDataToNewsletterData()
-    {
-        // -> copy CurrData Table to NewsletterDataTable
-        // -> clear CurrData table
-        db.ExecuteSQL("INSERT INTO CurrNewsletterData SELECT * FROM CurrRunData;");
-        db.ExecuteSQL("DELETE FROM CurrRunData;");
     }
 
     private string SanitizeDbItem(string unsanitized_string)

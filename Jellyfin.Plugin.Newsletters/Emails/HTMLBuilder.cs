@@ -119,13 +119,13 @@ public class HtmlBuilder
     {
         List<string> completed = new List<string>();
         string builtHTMLString = string.Empty;
-        // pull data from CurrNewsletterData table
+        // pull data from NewsletterData table
 
         try
         {
             db.CreateConnection();
 
-            foreach (var row in db.Query("SELECT * FROM CurrNewsletterData;"))
+            foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Emailed = 0 AND (Type = 'Series' OR Type = 'Movie');"))
             {
                 if (row is not null)
                 {
@@ -157,7 +157,46 @@ public class HtmlBuilder
                         }
                     }
 
-                    builtHTMLString += tmp_entry.Replace("{SeasonEpsInfo}", seaEpsHtml, StringComparison.Ordinal)
+                    builtHTMLString += tmp_entry.Replace("{TitleInfo}", seaEpsHtml, StringComparison.Ordinal)
+                                                .Replace("{ServerURL}", config.Hostname, StringComparison.Ordinal);
+                    completed.Add(item.Title);
+                }
+            }
+
+            foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Emailed = 0 AND Type = 'Album';"))
+            {
+                if (row is not null)
+                {
+                    JsonFileObj item = jsonHelper.ConvertToObj(row);
+                    // scan through all items and get all Season numbers and Episodes
+                    // (string seasonInfo, string episodeInfo) = ParseSeriesInfo(obj, readDataFile);
+                    if (completed.Contains(item.Title))
+                    {
+                        continue;
+                    }
+
+                    string albumsHtml = string.Empty;
+                    if (item.Type == "Album")
+                    {
+                        // for series only
+                        logger.Debug("Entering ParseMusicInfo method");
+                        List<NlDetailsJson> parsedInfoList = ParseMusicInfo(item);
+                        albumsHtml += GetSeasonEpisodeHTML(parsedInfoList);
+                    }
+
+                    var tmp_entry = config.Entry;
+                    // logger.Debug("TESTING");
+                    // logger.Debug(item.GetDict()["Filename"]);
+
+                    foreach (KeyValuePair<string, object?> ele in item.GetReplaceDict())
+                    {
+                        if (ele.Value is not null)
+                        {
+                            tmp_entry = this.TemplateReplace(tmp_entry, ele.Key, ele.Value);
+                        }
+                    }
+
+                    builtHTMLString += tmp_entry.Replace("{TitleInfo}", albumsHtml, StringComparison.Ordinal)
                                                 .Replace("{ServerURL}", config.Hostname, StringComparison.Ordinal);
                     completed.Add(item.Title);
                 }
@@ -182,7 +221,14 @@ public class HtmlBuilder
         {
             logger.Debug("SNIPPET OBJ: " + JsonConvert.SerializeObject(obj));
             // html += "<div id='SeasonEpisode' class='text' style='color: #FFFFFF;'>Season: " + obj.Season + " - Eps. " + obj.EpisodeRange + "</div>";
-            html += "Season: " + obj.Season + " - Eps. " + obj.EpisodeRange + "<br>";
+            if (obj.Type is "Series")
+            {
+                html += "Season: " + obj.Season + " - Eps. " + obj.EpisodeRange + "<br>";
+            }
+            else if (obj.Type is "Album")
+            {
+                html += "Album: " + obj.Album + "<br>";
+            }
         }
 
         return html;
@@ -193,7 +239,7 @@ public class HtmlBuilder
         List<NlDetailsJson> compiledList = new List<NlDetailsJson>();
         List<NlDetailsJson> finalList = new List<NlDetailsJson>();
 
-        foreach (var row in db.Query("SELECT * FROM CurrNewsletterData WHERE Title='" + currObj.Title + "';"))
+        foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Emailed = 0 AND Title='" + currObj.Title + "';"))
         {
             if (row is not null)
             {
@@ -204,7 +250,8 @@ public class HtmlBuilder
                 {
                     Title = itemObj.Title,
                     Season = itemObj.Season,
-                    Episode = itemObj.Episode
+                    Episode = itemObj.Episode,
+                    Type = itemObj.Type
                 };
 
                 logger.Debug("tempVar.Season: " + tempVar.Season + " : tempVar.Episode: " + tempVar.Episode);
@@ -229,6 +276,7 @@ public class HtmlBuilder
                 NlDetailsJson newJson = new NlDetailsJson();
                 newJson.Season = obj.Season;
                 newJson.EpisodeRange = obj.EpisodeRange;
+                newJson.Type = obj.Type;
                 return newJson;
             }
 
@@ -236,6 +284,7 @@ public class HtmlBuilder
             {
                 // logger.Debug("AddNewSeason()");
                 currSeriesDetailsObj.Season = currSeason = item.Season;
+                currSeriesDetailsObj.Type = item.Type;
                 newSeason = false;
                 tempEpsList.Add(item.Episode);
             }
@@ -400,6 +449,75 @@ public class HtmlBuilder
         return finalList;
     }
 
+    private List<NlDetailsJson> ParseMusicInfo(JsonFileObj currObj)
+    {
+        List<NlDetailsJson> compiledList = new List<NlDetailsJson>();
+        List<NlDetailsJson> finalList = new List<NlDetailsJson>();
+
+        foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Emailed = 0 AND Title='" + currObj.Title + "';"))
+        {
+            if (row is not null)
+            {
+                JsonFileObj helper = new JsonFileObj();
+                JsonFileObj itemObj = helper.ConvertToObj(row);
+
+                NlDetailsJson tempVar = new NlDetailsJson()
+                {
+                    Title = itemObj.Title,
+                    Album = itemObj.Album,
+                    Type = itemObj.Type
+                };
+
+                logger.Debug("tempVar.Album: " + tempVar.Album);
+                compiledList.Add(tempVar);
+            }
+        }
+
+        NlDetailsJson currAlbumDetailsObj = new NlDetailsJson();
+
+        string currAlbum;
+        int list_len = compiledList.Count;
+        int count = 1;
+        foreach (NlDetailsJson item in compiledList)
+        {
+            logger.Debug("After Sort in foreach: Album::" + item.Album);
+            logger.Debug("Count/list_len: " + count + "/" + list_len);
+
+            NlDetailsJson CopyJsonFromExisting(NlDetailsJson obj)
+            {
+                NlDetailsJson newJson = new NlDetailsJson();
+                newJson.Album = obj.Album;
+                newJson.Type = obj.Type;
+                return newJson;
+            }
+
+            void AddNewAlbum()
+            {
+                // logger.Debug("AddNewSeason()");
+                currAlbumDetailsObj.Album = currAlbum = item.Album;
+                currAlbumDetailsObj.Type = item.Type;
+                finalList.Add(CopyJsonFromExisting(currAlbumDetailsObj));
+            }
+
+            logger.Debug("CurrItem Album: " + item.Album);
+            if (count < list_len)
+            {
+                AddNewAlbum();
+            }
+
+            count++;
+        }
+
+        logger.Debug("FinalList Length: " + finalList.Count);
+
+        foreach (NlDetailsJson item in finalList)
+        {
+            logger.Debug("FinalListObjs: " + JsonConvert.SerializeObject(item));
+        }
+
+        return finalList;
+    }
+
     private bool IsIncremental(List<int> values)
     {
         return values.Skip(1).Select((v, i) => v == (values[i] + 1)).All(v => v);
@@ -426,17 +544,15 @@ public class HtmlBuilder
         logger.Info("Saving HTML file");
         WriteFile(write, newsletterHTMLFile, htmlBody);
 
-        // append newsletter cycle data to Archive.txt
-        CopyNewsletterDataToArchive();
+        // Updates Emailed column to 1
+        EmailedNewsletter();
     }
 
-    private void CopyNewsletterDataToArchive()
+    private void EmailedNewsletter()
     {
-        logger.Info("Appending NewsletterData for Current Newsletter Cycle to Archive Database..");
-
-        // copy tables
-        db.ExecuteSQL("INSERT INTO ArchiveData SELECT * FROM CurrNewsletterData;");
-        db.ExecuteSQL("DELETE FROM CurrNewsletterData;");
+        // -> copy CurrData Table to NewsletterDataTable
+        // -> clear CurrData table
+        db.ExecuteSQL("UPDATE NewsletterData SET Emailed = 1 WHERE Emailed = 0;");
     }
 
     private void WriteFile(string method, string path, string value)

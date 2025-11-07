@@ -56,7 +56,7 @@ namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
             progress.Report(0);
 
             Scraper myScraper = new Scraper(_libraryManager, progress, cancellationToken);
-            return myScraper.GetSeriesData();
+            return myScraper.GetNewsletterData();
         }
     }
 }

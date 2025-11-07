@@ -34,6 +34,7 @@ public class PosterImageHandler
     private readonly PluginConfiguration config;
     private Logger logger;
     private SQLiteDatabase db;
+    private JsonFileObj jsonHelper;
 
     // Non-readonly
     private List<JsonFileObj> archiveSeriesList;
@@ -44,6 +45,7 @@ public class PosterImageHandler
         logger = new Logger();
         db = new SQLiteDatabase();
         config = Plugin.Instance!.Configuration;
+        jsonHelper = new JsonFileObj();
 
         archiveSeriesList = new List<JsonFileObj>();
     }
@@ -55,20 +57,42 @@ public class PosterImageHandler
         switch (config.PHType)
         {
             case "Imgur":
-                return UploadToImgur(item.PosterPath);
+                return SetImgurUrl(item);
                 break;
             case "JfHosting":
                 return $"{config.Hostname}/Items/{item.ItemID}/Images/Primary";
                 break;
             default:
-                return "Something Went Wrong";
+                return "ERR";
                 break;
         }
-
-        // return UploadToImgur(posterFilePath);
     }
 
-    private string UploadToImgur(string posterFilePath)
+    public string SetImgurUrl(JsonFileObj currObj)
+    {
+        string currTitle = currObj.Title.Replace("'", string.Empty, StringComparison.Ordinal);
+        // check if Imgur URL for series already exists NewsletterData table
+        foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Title ='" + currTitle + "';"))
+        {
+            if (row is not null)
+            {
+                JsonFileObj fileObj;
+                fileObj = jsonHelper.ConvertToObj(row);
+                if ((fileObj is not null) && (fileObj.ImageURL.Length > 0))
+                {
+                    logger.Debug("Found existing Imgur URL for " + currTitle + " :: " + fileObj.ImageURL);
+                    return fileObj.ImageURL;
+                }
+            }
+        }
+
+        logger.Debug("Uploading poster to Imgur...");
+        logger.Debug(currObj.ItemID);
+        logger.Debug(currObj.PosterPath);
+        return UploadToImgur(currObj.PosterPath);
+    }
+
+    public string UploadToImgur(string posterFilePath)
     {
         WebClient wc = new();
 

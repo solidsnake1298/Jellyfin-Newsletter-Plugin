@@ -10,15 +10,21 @@ public class NlDetailsJson
     {
         Title = string.Empty;
         Season = 0;
+        Album = string.Empty;
         Episode = 0;
         EpisodeRange = string.Empty;
+        Type = string.Empty;
     }
 
     public string Title { get; set; }
 
     public int Season { get; set; }
 
+    public string Album { get; set; }
+
     public int Episode { get; set; }
 
     public string EpisodeRange { get; set; }
+
+    public string Type { get; set; }
 }

@@ -79,9 +79,11 @@ public class SQLiteDatabase
             // ImageURL = string.Empty;
             // ItemID = string.Empty;
             // PosterPath = string.Empty;
+            // Type = string.Empty;
+            // Emailed = 0;
 
             logger.Debug("Creating Tables...");
-            string[] tableNames = { "CurrRunData", "CurrNewsletterData", "ArchiveData" };
+            string[] tableNames = { "NewsletterData" };
             CreateTables(tableNames);
             logger.Debug("Done Init of tables");
         }
@@ -101,6 +103,7 @@ public class SQLiteDatabase
                                 "ItemID TEXT," +
                                 "PosterPath TEXT," +
                                 "Type TEXT," +
+                                "Emailed INT," +
                                 "PRIMARY KEY (Filename)" +
                             ");");
             }

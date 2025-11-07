@@ -28,6 +28,7 @@ public class JsonFileObj
         ItemID = string.Empty;
         PosterPath = string.Empty;
         Type = string.Empty;
+        Emailed = 0;
     }
 
     public string Filename { get; set; }
@@ -50,6 +51,8 @@ public class JsonFileObj
 
     public string Type { get; set; }
 
+    public int Emailed { get; set; }
+
     public JsonFileObj ConvertToObj(IReadOnlyList<ResultSetValue> row)
     {
         // Filename = string.Empty; 0
@@ -62,6 +65,7 @@ public class JsonFileObj
         // ItemID = string.Empty; 7
         // PosterPath = string.Empty; 8
         // Album = string.Empty; 9
+        // Emailed = 0; 10
 
         logger = new Logger();
         JsonFileObj obj = new JsonFileObj()
@@ -75,7 +79,8 @@ public class JsonFileObj
             ImageURL = row[6].ToString(),
             ItemID = row[7].ToString(),
             PosterPath = row[8].ToString(),
-            Type = row[9].ToString()
+            Type = row[9].ToString(),
+            Emailed = int.Parse(row[10].ToString(), CultureInfo.CurrentCulture)
         };
 
         return obj;

@@ -140,11 +140,11 @@ public class Smtp : ControllerBase
 
     private bool NewsletterDbIsPopulated()
     {
-        foreach (var row in db.Query("SELECT COUNT(*) FROM CurrNewsletterData;"))
+        foreach (var row in db.Query("SELECT COUNT(*) FROM NewsletterData WHERE Emailed = 0;"))
         {
             if (row is not null)
             {
-                if (int.Parse(row[0].ToString(), CultureInfo.CurrentCulture) > 0)
+                if (int.TryParse(row[0].ToString(), out var x) && x > 0)
                 {
                     db.CloseConnection();
                     return true;
