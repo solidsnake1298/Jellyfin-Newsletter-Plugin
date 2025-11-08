@@ -155,8 +155,18 @@ public class Scraper
             logger.Debug("---------------");
             currCount++;
             progress.Report((double)currCount / (double)totalLibCount * 100);
-            if ((item is not null) && 
-                !InDatabase(item.Path.Replace("'", string.Empty, StringComparison.Ordinal)))
+            bool inDatabase = false;
+            if (type == "Album")
+            {
+                string path = Path.GetDirectoryName(item.Path).Replace("'", string.Empty, StringComparison.Ordinal);
+                inDatabase = InDatabase(path);
+            }
+            else
+            {
+                inDatabase = InDatabase(item.Path.Replace("'", string.Empty, StringComparison.Ordinal));
+            }
+
+            if ((item is not null) && !inDatabase)
             {
                 JsonFileObj currFileObj = new JsonFileObj();
                 try
@@ -242,7 +252,12 @@ public class Scraper
                     logger.Debug("Complete!");
                 }
             }
-            else
+            else if (item is null)
+            {
+                logger.Debug("Item is null!");
+                continue;
+            }
+            else if (inDatabase)
             {
                 logger.Debug("\"" + item.Path + "\" has already been processed either by Previous or Current Newsletter!");
                 continue;

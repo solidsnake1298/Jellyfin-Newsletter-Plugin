@@ -92,7 +92,7 @@ public class SQLiteDatabase
         {
             foreach (string table in tables)
             {
-                ExecuteSQL("create table if not exists " + table + " (" +
+                ExecuteSQL("CREATE TABLE IF NOT EXISTS " + table + " (" +
                                 "Filename TEXT NOT NULL," +
                                 "Title TEXT," +
                                 "Album TEXT," +
