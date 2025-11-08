@@ -2,7 +2,7 @@
 name: "Newsletters"
 guid: "60f478ab-2dd6-4ea0-af10-04d033f75979"
 imageUrl: "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png"
-version: "0.7.0.6"
+version: "0.8"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Send newsletters for recently added media"
@@ -13,5 +13,5 @@ artifacts:
   - "Jellyfin.Plugin.Newsletters.dll"
   - "SQLitePCL.pretty.dll"
 changelog: >
-  - Fixed Series poster.  Added debugging lines to troubleshoot music scraping the library folder.  Replaced SeriesOverview in HTML builder and templates with new Overview.
+  - Music support added.  Working on fixed dupes in Albums and episodes.
   FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md
