@@ -235,21 +235,29 @@ public class Scraper
                     // save to "database" : Table currRunScanList
                     logger.Debug("Adding to NewsletterData DB...");
                     currFileObj = NoNull(currFileObj);
-                    db.ExecuteSQL("INSERT INTO NewsletterData (Filename, Title, Album, Season, Episode, Overview, ImageURL, ItemID, PosterPath, Type, Emailed) " +
+                    try
+                    {
+                        db.ExecuteSQL(
+                            "INSERT INTO NewsletterData (Filename, Title, Album, Season, Episode, Overview, ImageURL, ItemID, PosterPath, Type, Emailed) " +
                             "VALUES (" +
-                                SanitizeDbItem(currFileObj.Filename) +
-                                "," + SanitizeDbItem(currFileObj!.Title) +
-                                "," + SanitizeDbItem(currFileObj!.Album) +
-                                "," + ((currFileObj?.Season is null) ? -1 : currFileObj.Season) +
-                                "," + ((currFileObj?.Episode is null) ? -1 : currFileObj.Episode) +
-                                "," + SanitizeDbItem(currFileObj!.Overview) +
-                                "," + SanitizeDbItem(currFileObj!.ImageURL) +
-                                "," + SanitizeDbItem(currFileObj.ItemID) +
-                                "," + SanitizeDbItem(currFileObj!.PosterPath) +
-                                "," + SanitizeDbItem(currFileObj.Type) +
-                                "," + ((currFileObj?.Emailed is null) ? 0 : currFileObj.Emailed) +
+                            SanitizeDbItem(currFileObj.Filename) +
+                            "," + SanitizeDbItem(currFileObj!.Title) +
+                            "," + SanitizeDbItem(currFileObj!.Album) +
+                            "," + ((currFileObj?.Season is null) ? -1 : currFileObj.Season) +
+                            "," + ((currFileObj?.Episode is null) ? -1 : currFileObj.Episode) +
+                            "," + SanitizeDbItem(currFileObj!.Overview) +
+                            "," + SanitizeDbItem(currFileObj!.ImageURL) +
+                            "," + SanitizeDbItem(currFileObj.ItemID) +
+                            "," + SanitizeDbItem(currFileObj!.PosterPath) +
+                            "," + SanitizeDbItem(currFileObj.Type) +
+                            "," + ((currFileObj?.Emailed is null) ? 0 : currFileObj.Emailed) +
                             ");");
-                    logger.Debug("Complete!");
+                        logger.Debug("Complete!");
+                    }
+                    catch (Exception e)
+                    {
+                        logger.Debug("Duplicate record");
+                    }
                 }
             }
             else if (item is null)
