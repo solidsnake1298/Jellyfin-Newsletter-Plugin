@@ -9,12 +9,20 @@
         "imageUrl": "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png",
         "versions": [
             {
+                "version": "0.9.0.0",
+                "changelog": "- Removing JFHosting and Imgur URL hosting in favor of embedded base64 encoded images. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/newsletters/newsletters_0.9.0.0.zip",
+                "checksum": "607c94c3f6f55b719774af86e2d9692d",
+                "timestamp": "2025-11-09T21:15:45Z"
+            },
+            {
                 "version": "0.8.0.0",
                 "changelog": "- Music support added.  Working on fixed dupes in Albums and episodes. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.8/newsletters_0.8.0.0.zip",
-                "checksum": "668dae83ba8a7da03e0f4fb9625f01ae",
-                "timestamp": "2025-11-09T02:08:01Z"
+                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.8.0.0/newsletters_0.8.0.0.zip",
+                "checksum": "093c26c4584692a16d99f21a3b099b80",
+                "timestamp": "2025-11-09T20:45:32Z"
             },
             {
                 "version": "0.7.0.6",
