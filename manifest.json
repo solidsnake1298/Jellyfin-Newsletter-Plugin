@@ -12,7 +12,7 @@
                 "version": "0.8.0.0",
                 "changelog": "- Music support added.  Working on fixed dupes in Albums and episodes. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.8.0.0/newsletters_0.8.0.0.zip",
+                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.8/newsletters_0.8.0.0.zip",
                 "checksum": "668dae83ba8a7da03e0f4fb9625f01ae",
                 "timestamp": "2025-11-09T02:08:01Z"
             },
