@@ -167,7 +167,7 @@ public class HtmlBuilder
                     }
 
                     builtHTMLString += tmp_entry.Replace("{TitleInfo}", seaEpsHtml, StringComparison.Ordinal)
-                                                .Replace("{ImageURL}", "cid:" + item.ItemID, StringComparison.Ordinal);
+                                                .Replace("{ImageURL}", "cid:<" + item.ItemID+ ">", StringComparison.Ordinal);
 
                     contentIdList.Add(JsonConvert.SerializeObject(contentID));
                     completed.Add(item.Title);
@@ -213,7 +213,7 @@ public class HtmlBuilder
                     }
 
                     builtHTMLString += tmp_entry.Replace("{TitleInfo}", albumsHtml, StringComparison.Ordinal)
-                                                .Replace("{ImageURL}", "cid:" + contentID.ItemID, StringComparison.Ordinal);
+                                                .Replace("{ImageURL}", "cid:<" + item.ItemID + ">", StringComparison.Ordinal);
                     
                     
                     contentIdList.Add(JsonConvert.SerializeObject(contentID));
@@ -233,32 +233,9 @@ public class HtmlBuilder
         return builtHTMLString;
     }
 
-    public string BuildContentIdString()
+    public List<string> BuildContentId()
     {
-        string builtContentIdString = string.Empty;
-        foreach (var row in contentIdList)
-        {
-            if (row is not null)
-            {
-                ContentIdJson contentID = JsonConvert.DeserializeObject<ContentIdJson>(row);
-                string mimeType = contentID.MimeType;
-                string fullPosterPath = contentID.PosterPath;
-                string posterPath = Path.GetFileName(contentID.PosterPath);
-                string itemId = contentID.ItemID;
-                    
-                logger.Debug($"MimeType:: {mimeType}, FullFileName:: {fullPosterPath}, fileName:: {posterPath}, ItemID:: {itemId}");
-
-                builtContentIdString += "----blackmoon\\@{itemId}";
-                builtContentIdString += "Content-Type: {mimeType}; name={fileName}";
-                builtContentIdString += "Content-Disposition: inline; filename={posterPath}";
-                builtContentIdString += "Content-Transfer-Encoding: base64";
-                builtContentIdString += "Content-ID: {itemId}";
-                builtContentIdString += "Content-Location: {fileName}";
-                builtContentIdString += PosterImageHandler.ConvertImageToBase64(fullPosterPath);
-                builtContentIdString += "----blackmoon\\@{itemId}";
-            }
-        }
-        return builtContentIdString;
+        return contentIdList;
     }
 
     private string GetSeasonEpisodeHTML(List<NlDetailsJson> list)

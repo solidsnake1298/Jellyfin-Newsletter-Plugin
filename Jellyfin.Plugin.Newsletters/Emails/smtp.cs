@@ -1,16 +1,23 @@
 #pragma warning disable 1591
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Net;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
 using Jellyfin.Plugin.Newsletters.Configuration;
 using Jellyfin.Plugin.Newsletters.Emails.HTMLBuilder;
 using Jellyfin.Plugin.Newsletters.LOGGER;
+using Jellyfin.Plugin.Newsletters.Scanner.NLImageHandler;
+using Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
 using Jellyfin.Plugin.Newsletters.Shared.DATA;
 using MediaBrowser.Common.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 // using System.Net.NetworkCredential;
 
@@ -29,6 +36,7 @@ public class Smtp : ControllerBase
     // private readonly string newsletterDataFile;
     private SQLiteDatabase db;
     private Logger logger;
+    private ContentIdJson contentIdHelper;
 
     public Smtp()
     {
@@ -101,8 +109,27 @@ public class Smtp : ControllerBase
                 // string finalBody = hb.ReplaceBodyWithBuiltString(body, builtString);
                 string currDate = DateTime.Today.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
                 builtString = builtString.Replace("{Date}", currDate, StringComparison.Ordinal);
-                builtString += hb.BuildContentIdString();
-
+                List<string> contentId = hb.BuildContentId();
+                string attachmentImagePath = config.DataPath + "/newsletterImages";
+                foreach (var row in contentId)
+                {
+                    ContentIdJson contentID = JsonConvert.DeserializeObject<ContentIdJson>(row);
+                    string posterPath = contentID.PosterPath;
+                    string itemID = contentID.ItemID;
+                    string mimeType = contentID.MimeType;
+                    string extension = Path.GetExtension(posterPath);
+                    var imageStream = PosterImageHandler.ResizeImage(posterPath);
+                    imageStream.Position = 0;
+                    Directory.CreateDirectory(attachmentImagePath);
+                    var fileStream = System.IO.File.Create($"{attachmentImagePath}/{itemID}{extension}");
+                    imageStream.CopyTo(fileStream);
+                    fileStream.Close();
+                    Attachment fileAttachment = new Attachment($"{attachmentImagePath}/{itemID}{extension}");
+                    fileAttachment.ContentDisposition.Inline = false;
+                    fileAttachment.ContentId = itemID;
+                    mail.Attachments.Add(fileAttachment);
+                }
+                
                 mail.From = new MailAddress(emailFromAddress, emailFromAddress);
                 mail.To.Clear();
                 mail.Headers.Add("MIME-Version", "1.0");

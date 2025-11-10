@@ -13,8 +13,8 @@
                 "changelog": "- Removing JFHosting and Imgur URL hosting in favor of embedded base64 encoded images. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.9.0.1/newsletters_0.9.0.1.zip",
-                "checksum": "da503c32eaa5eb168c903b5dd3a7a426",
-                "timestamp": "2025-11-10T16:42:04Z"
+                "checksum": "09bab55e2890902b94b1db9ea4ad0d51",
+                "timestamp": "2025-11-10T21:13:00Z"
             },
             {
                 "version": "0.9.0.0",

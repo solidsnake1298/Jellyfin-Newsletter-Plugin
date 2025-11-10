@@ -55,16 +55,14 @@ public class PosterImageHandler
         archiveSeriesList = new List<JsonFileObj>();
     }
 
-    public static string ConvertImageToBase64(string imgPath)
+    public static Stream ResizeImage(string imgPath)
     {
         var streamImage = SKImage.FromEncodedData(imgPath);
         using (var skImage = SKBitmap.FromImage(streamImage))
         {
             string extension = Path.GetExtension(imgPath);
-            string base64MimeType = GetMimeTypeFromExtension(extension);
             int width = skImage.Width;
-            int targetWidth = 200;
-            double scaleFactor = targetWidth / width;
+            double scaleFactor = 200.0 / width;
             if (scaleFactor <= 0)
             {
                 scaleFactor = 0.5;
@@ -81,14 +79,14 @@ public class PosterImageHandler
                         var stream = new MemoryStream();
                         encodedImage.SaveTo(stream);
                         stream.Seek(0, SeekOrigin.Begin);
-                        string base64Image = Convert.ToBase64String(stream.ToArray());
-                        return $"data:{base64MimeType};base64, {base64Image}";
+                        //string base64Image = Convert.ToBase64String(stream.ToArray());
+                        return stream;
                     }
                 }
             }
             else
             {
-                using (var scaledBitmap = skImage.Resize(new SKSizeI(targetWidth, newHeight), SKFilterQuality.Low))
+                using (var scaledBitmap = skImage.Resize(new SKSizeI(200, newHeight), SKFilterQuality.Low))
                 {
                     using (var image = SKImage.FromBitmap(scaledBitmap))
                     {
@@ -97,8 +95,8 @@ public class PosterImageHandler
                             var stream = new MemoryStream();
                             encodedImage.SaveTo(stream);
                             stream.Seek(0, SeekOrigin.Begin);
-                            string base64Image = Convert.ToBase64String(stream.ToArray());
-                            return $"data:{base64MimeType};base64, {base64Image}";
+                            //string base64Image = Convert.ToBase64String(stream.ToArray());
+                            return stream;
                         }
                     }
                 }
