@@ -107,6 +107,7 @@ public class Smtp : ControllerBase
                 string body = hb.GetDefaultHTMLBody();
                 string builtString = hb.BuildDataHtmlStringFromNewsletterData();
                 // string finalBody = hb.ReplaceBodyWithBuiltString(body, builtString);
+                builtString = hb.ReplaceBodyWithBuiltString(body, builtString);
                 string currDate = DateTime.Today.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
                 builtString = builtString.Replace("{Date}", currDate, StringComparison.Ordinal);
                 List<string> contentId = hb.BuildContentId();
