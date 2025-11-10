@@ -189,11 +189,6 @@
                     config.SeriesEnabled = document.querySelector('#SeriesEnabled').checked;
                     config.MoviesEnabled = document.querySelector('#MoviesEnabled').checked;
                     config.MusicEnabled = document.querySelector('#MusicEnabled').checked;
-                    //scraperConfig
-                    //hosting options
-                    config.PHType = document.querySelector('#HostingSelector').value;
-                    config.ApiKey = document.querySelector('#ApiKey').value;
-                    config.Hostname = document.querySelector('#Hostname').value;
 
                     ApiClient.updatePluginConfiguration(NewsletterConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
@@ -223,13 +218,6 @@
                     document.querySelector('#SeriesEnabled').checked = config.SeriesEnabled;
                     document.querySelector('#MoviesEnabled').checked = config.MoviesEnabled;
                     document.querySelector('#MusicEnabled').checked = config.MusicEnabled;
-                    //scraperConfig
-                    //hosting options
-                    document.querySelector('#HostingSelector').value = config.PHType;
-                    hideScraperConfig();
-                    showScraperConfig(config.PHType);
-                    document.querySelector('#ApiKey').value = config.ApiKey;
-                    document.querySelector('#Hostname').value = config.Hostname;
 
                     Dashboard.hideLoadingMsg();
                 });
@@ -270,12 +258,6 @@
                 e.preventDefault();
                 alert("Test email sent!");
                 return false;
-            });
-
-            document.querySelector('#HostingSelector')
-                .addEventListener('change', function() {
-                hideScraperConfig();
-                showScraperConfig(this.value);
             });
 
         </script>
