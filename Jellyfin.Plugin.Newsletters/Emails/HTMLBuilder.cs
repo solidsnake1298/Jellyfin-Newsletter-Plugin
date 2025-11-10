@@ -41,7 +41,7 @@ public class HtmlBuilder
     private SQLiteDatabase db;
     private JsonFileObj jsonHelper;
     private ContentIdJson contentIdHelper;
-    List<string> contentIdList = new List<string>();
+    private List<string> contentIdList = new List<string>();
 
     // Non-readonly
     private static string append = "Append";
