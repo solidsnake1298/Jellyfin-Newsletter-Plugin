@@ -210,18 +210,15 @@ public class Scraper
                         continue;
                     }
 
-                    logger.Debug($"Checking if PosterPath Exists");
-                    if ((currFileObj.PosterPath != null) && (currFileObj.PosterPath.Length > 0))
+                    try
                     {
-                        string url = imageHandler.FetchImagePoster(currFileObj);
-                        logger.Debug("URL: " + url);
-
-                        if ((url == "429") || (url == "ERR"))
-                        {
-                            logger.Debug("URL is not attainable at this time. Stopping scan.. Will resume during next scan.");
-                        }
-
-                        currFileObj.ImageURL = url;
+                        logger.Debug($"Checking if PosterPath Exists");
+                        ArgumentNullException.ThrowIfNull(currFileObj.PosterPath);
+                    }
+                    catch
+                    {
+                        logger.Debug($"PosterPath is empty");
+                        continue;
                     }
                 }
                 catch (Exception e)
@@ -238,7 +235,7 @@ public class Scraper
                     try
                     {
                         db.ExecuteSQL(
-                            "INSERT INTO NewsletterData (Filename, Title, Album, Season, Episode, Overview, ImageURL, ItemID, PosterPath, Type, Emailed) " +
+                            "INSERT INTO NewsletterData (Filename, Title, Album, Season, Episode, Overview, ItemID, PosterPath, Type, Emailed) " +
                             "VALUES (" +
                             SanitizeDbItem(currFileObj.Filename) +
                             "," + SanitizeDbItem(currFileObj!.Title) +
@@ -246,7 +243,6 @@ public class Scraper
                             "," + ((currFileObj?.Season is null) ? -1 : currFileObj.Season) +
                             "," + ((currFileObj?.Episode is null) ? -1 : currFileObj.Episode) +
                             "," + SanitizeDbItem(currFileObj!.Overview) +
-                            "," + SanitizeDbItem(currFileObj!.ImageURL) +
                             "," + SanitizeDbItem(currFileObj.ItemID) +
                             "," + SanitizeDbItem(currFileObj!.PosterPath) +
                             "," + SanitizeDbItem(currFileObj.Type) +
@@ -254,7 +250,7 @@ public class Scraper
                             ");");
                         logger.Debug("Complete!");
                     }
-                    catch (Exception e)
+                    catch
                     {
                         logger.Debug("Duplicate record");
                     }
@@ -305,12 +301,11 @@ public class Scraper
             logger.Warn(".../MyLibraryName/Series_Name/Season#_or_Specials/Episode.{ext}");
         }
 
-        logger.Debug($"Season: {season.IndexNumber}");
-        logger.Debug($"Episode Name: {episode.Name}");
-        logger.Debug($"Episode Number: {episode.IndexNumber}");
-        logger.Debug($"Overview: {series.Overview}");
-        logger.Debug($"ImageInfo: {series.PrimaryImagePath}");
-        logger.Debug($"Filepath: " + episode.Path);
+        logger.Debug($"Season: {currFileObj.Season}");
+        logger.Debug($"Episode Number: {currFileObj.Episode}");
+        logger.Debug($"Overview: {currFileObj.Overview}");
+        logger.Debug($"ImageInfo: {currFileObj.PosterPath}");
+        logger.Debug($"Filepath: {currFileObj.Filename}");
 
         return currFileObj;
     }
@@ -339,10 +334,10 @@ public class Scraper
             logger.Warn(".../MyLibraryName/Movie_Name/Movie.{ext}");
         }
 
-        logger.Debug($"Movie: {movie.Name}");
-        logger.Debug($"Overview: {movie.Overview}");
-        logger.Debug($"ImageInfo: {movie.PrimaryImagePath}");
-        logger.Debug($"Filepath: " + movie.Path);
+        logger.Debug($"Movie: {currFileObj.Title}");
+        logger.Debug($"Overview: {currFileObj.Overview}");
+        logger.Debug($"ImageInfo: {currFileObj.PosterPath}");
+        logger.Debug($"Filepath: {currFileObj.Filename}");
 
         return currFileObj;
     }
@@ -359,9 +354,9 @@ public class Scraper
         currFileObj.PosterPath = artist.PrimaryImagePath;
         currFileObj.Emailed = 0;
 
-        logger.Debug($"Artist: {artist.Name.ToString()}");
-        logger.Debug($"ImageInfo: {artist.PrimaryImagePath}");
-        logger.Debug($"Filepath: " + album.Path);
+        logger.Debug($"Artist: {currFileObj.Title}");
+        logger.Debug($"ImageInfo: {currFileObj.PosterPath}");
+        logger.Debug($"Filepath: {currFileObj.Filename}");
 
         return currFileObj;
     }
@@ -372,7 +367,6 @@ public class Scraper
         currFileObj.Title ??= string.Empty;
         currFileObj.Album ??= string.Empty;
         currFileObj.Overview ??= string.Empty;
-        currFileObj.ImageURL ??= string.Empty;
         currFileObj.ItemID ??= string.Empty;
         currFileObj.PosterPath ??= string.Empty;
         currFileObj.Type ??= string.Empty;

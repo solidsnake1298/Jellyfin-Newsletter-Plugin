@@ -1,3 +1,9 @@
+# 0.9.0.0
+- Removing image hosting options, replacing with embedded base64 images
+
+# 0.8.0.0
+- Music support completed
+
 # 0.7.0.0
 - Added music support, initial commit
 

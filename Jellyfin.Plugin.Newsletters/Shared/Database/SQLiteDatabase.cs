@@ -84,7 +84,6 @@ public class SQLiteDatabase
                 "Season INT," +
                 "Episode INT," +
                 "Overview TEXT," +
-                "ImageURL TEXT," +
                 "ItemID TEXT," +
                 "PosterPath TEXT," +
                 "Type TEXT," +
@@ -102,7 +101,6 @@ public class SQLiteDatabase
                             "Season," +
                             "Episode," +
                             "Overview," +
-                            "ImageURL," +
                             "ItemID," +
                             "PosterPath," +
                             "Type) " + 
@@ -112,7 +110,6 @@ public class SQLiteDatabase
                             "Season," +
                             "Episode," +
                             "SeriesOverview," +
-                            "ImageURL," +
                             "ItemID," +
                             "PosterPath," +
                             "Type " +
@@ -121,7 +118,7 @@ public class SQLiteDatabase
             ExecuteSQL("DROP TABLE IF EXISTS CurrNewsletterData");
             ExecuteSQL("DROP TABLE IF EXISTS ArchiveData");
         }
-        catch (Exception e)
+        catch
         {
             logger.Debug("Legacy tables aren't present.");
         }

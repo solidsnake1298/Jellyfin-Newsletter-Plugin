@@ -73,6 +73,7 @@
                             <div class="inputContainer" id="BodyTemplate">
                                 <label class="inputLabel inputLabelUnfocused" for="Body">Body Html:</label>
                                 <div class="fieldDescription">
+                                    Additional templates available on <a href="https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/tree/master/Jellyfin.Plugin.Newsletters/Templates">Github</a><br>
                                     See below for Field Names to use in your custom HTML:<br>
                                     {Date} - The date of Newsletter generation. <br>
                                     {EntryData} - This is the insert of the custom HTML from the field EntryData below. If not used, email will have no data. <br>
@@ -85,7 +86,7 @@
                                 <label class="inputLabel inputLabelUnfocused" for="Entry">EntryData Html:</label>
                                 <div class="fieldDescription">
                                     See below for Field Names to use in your custom HTML:<br>
-                                    {ImageURL} - The physical URL for the image to be used. For HTML formatting, should be used within a 'img' tag as it's source. <br>
+                                    {ImageURL} - The base64 encoded string for the poster image. <br>
                                     {Title} - Title of the Series/Movie for the entry <br>
                                     {TitleInfo} - Season-Episode information for a series (Doesn't show for movies) <br>
                                     {Overview} - The series/movie overview <br>
@@ -96,40 +97,6 @@
                         </details>
                     </div>
                     <br>
-
-                    <!-- Scraper configuration Details -->
-                    <div id="HiddenDetails" name="ScraperConfig" class="DropdownSection">
-                        <details>
-                            <summary>Scraper Config</summary><br>
-                            <div class="selectContainer">
-                                <label class="selectLabel" for="HostingSelector">Poster Hosting Type:</label>
-                                <select is="emby-select" id="HostingSelector" name="HostingSelector" class="emby-select-withcolor emby-select">
-                                    <option id="defaultImgur" value="Imgur">Imgur (Default)</option>
-                                    <option id="localJFHosting" value="JfHosting">Local JF Hosting</option>
-                                </select>
-                            </div>
-                            <hr>
-                            <div id="Imgur" name="options">
-                                <div class="inputContainer" id="ImgurClientID">
-                                    <label class="inputLabel inputLabelUnfocused" for="ApiKey">Imgur API Key:</label>
-                                    <input id="ApiKey" name="ApiKey" type="text" is="emby-input" />
-                                    <div class="fieldDescription">Required for image uploading so HTML formatting of newsletter can pull images (posters). Follow instructions <a href="https://dev.to/bearer/how-to-configure-the-imgur-api-2ap9" target="_blank">Here</a> and <a href="http://siberiancmscustomization.blogspot.com/2020/10/how-to-get-imgur-client-id.html" target="_blank">Here</a> </div>
-                                </div>
-                            </div>
-                            <div id="JfHosting" name="options">
-                                <div class="inputContainer" id="LocalHostname">
-                                    <label class="inputLabel inputLabelUnfocused" for="ApiKey">Hostname:</label>
-                                    <input id="Hostname" name="Hostname" type="text" is="emby-input" />
-                                    <div class="fieldDescription">
-                                        Hostname for your JF server that is accessible from outside your network. Ensure to include http[s]:// and port number (if applicable). <b>DO NOT include a trailing slash '/'</b>. 
-                                        <br><br>
-                                        I.e: https://myServerDNSName.com:8096
-                                    </div>
-                                </div>
-                            </div>
-                        </details>
-                    </div>
-
                     <br>
                     <!-- SMTP Server Details -->
                     <div id="HiddenDetails" name="ServerDetails" class="DropdownSection">

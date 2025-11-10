@@ -23,6 +23,8 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SkiaSharp;
+
 // using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Newsletters.Scanner.NLImageHandler;
@@ -30,6 +32,9 @@ namespace Jellyfin.Plugin.Newsletters.Scanner.NLImageHandler;
 public class PosterImageHandler
 {
     // Global Vars
+    private const string DefaultMimeType = "application/octet-stream";
+    private const SKEncodedImageFormat DefaultImageFormat = SKEncodedImageFormat.Png;
+    
     // Readonly
     private readonly PluginConfiguration config;
     private Logger logger;
@@ -50,85 +55,84 @@ public class PosterImageHandler
         archiveSeriesList = new List<JsonFileObj>();
     }
 
-    public string FetchImagePoster(JsonFileObj item)
+    public static string ConvertImageToBase64(string imgPath)
     {
-        // Check which config option for posters are selected
-        logger.Debug($"HOSTING TYPE: {config.PHType}");
-        switch (config.PHType)
+        var streamImage = SKImage.FromEncodedData(imgPath);
+        using (var skImage = SKBitmap.FromImage(streamImage))
         {
-            case "Imgur":
-                return SetImgurUrl(item);
-                break;
-            case "JfHosting":
-                return $"{config.Hostname}/Items/{item.ItemID}/Images/Primary";
-                break;
-            default:
-                return "ERR";
-                break;
-        }
-    }
-
-    public string SetImgurUrl(JsonFileObj currObj)
-    {
-        string currTitle = currObj.Title.Replace("'", string.Empty, StringComparison.Ordinal);
-        // check if Imgur URL for series already exists NewsletterData table
-        foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Title ='" + currTitle + "';"))
-        {
-            if (row is not null)
+            string extension = Path.GetExtension(imgPath);
+            string base64MimeType = GetMimeTypeFromExtension(extension);
+            int width = skImage.Width;
+            int targetWidth = 200;
+            double scaleFactor = targetWidth / width;
+            if (scaleFactor <= 0)
             {
-                JsonFileObj fileObj;
-                fileObj = jsonHelper.ConvertToObj(row);
-                if ((fileObj is not null) && (fileObj.ImageURL.Length > 0))
+                scaleFactor = 0.5;
+            }
+            
+            int newHeight = (int)(skImage.Height * scaleFactor);
+
+            if (scaleFactor is 1)
+            {
+                using (var image = SKImage.FromBitmap(skImage))
                 {
-                    logger.Debug("Found existing Imgur URL for " + currTitle + " :: " + fileObj.ImageURL);
-                    return fileObj.ImageURL;
+                    using (var encodedImage = image.Encode(GetSkiaSharpImageFormatFromExtension(extension), 50))
+                    {
+                        var stream = new MemoryStream();
+                        encodedImage.SaveTo(stream);
+                        stream.Seek(0, SeekOrigin.Begin);
+                        string base64Image = Convert.ToBase64String(stream.ToArray());
+                        return $"data:{base64MimeType};base64, {base64Image}";
+                    }
+                }
+            }
+            else
+            {
+                using (var scaledBitmap = skImage.Resize(new SKSizeI(targetWidth, newHeight), SKFilterQuality.Low))
+                {
+                    using (var image = SKImage.FromBitmap(scaledBitmap))
+                    {
+                        using (var encodedImage = image.Encode(GetSkiaSharpImageFormatFromExtension(extension), 50))
+                        {
+                            var stream = new MemoryStream();
+                            encodedImage.SaveTo(stream);
+                            stream.Seek(0, SeekOrigin.Begin);
+                            string base64Image = Convert.ToBase64String(stream.ToArray());
+                            return $"data:{base64MimeType};base64, {base64Image}";
+                        }
+                    }
                 }
             }
         }
-
-        logger.Debug("Uploading poster to Imgur...");
-        logger.Debug(currObj.ItemID);
-        logger.Debug(currObj.PosterPath);
-        return UploadToImgur(currObj.PosterPath);
     }
 
-    public string UploadToImgur(string posterFilePath)
+    public static string GetMimeTypeFromExtension(string extension)
     {
-        WebClient wc = new();
+        ArgumentNullException.ThrowIfNull(extension);
 
-        NameValueCollection values = new()
-        {
-            { "image", Convert.ToBase64String(File.ReadAllBytes(posterFilePath)) }
-        };
-
-        wc.Headers.Add("Authorization", "Client-ID " + config.ApiKey);
-
-        try
-        {
-            byte[] response = wc.UploadValues("https://api.imgur.com/3/upload.xml", values);
-
-            string res = System.Text.Encoding.Default.GetString(response);
-
-            logger.Debug("Imgur Response: " + res);
-
-            logger.Info("Imgur Uploaded! Link:");
-            logger.Info(res.Split("<link>")[1].Split("</link>")[0]);
-
-            return res.Split("<link>")[1].Split("</link>")[0];
-        }
-        catch (WebException e)
-        {
-            logger.Debug("WebClient Return STATUS: " + e.Status);
-            logger.Debug(e.ToString().Split(")")[0].Split("(")[1]);
-            try
-            {
-                return e.ToString().Split(")")[0].Split("(")[1];
-            }
-            catch (Exception ex)
-            {
-                logger.Error("Error caught while trying to parse webException error: " + ex);
-                return "ERR";
-            }
-        }
+        return MimeTypeMapping.TryGetValue(extension, out string mimeType) ? mimeType : DefaultMimeType;
     }
+
+    private static SKEncodedImageFormat GetSkiaSharpImageFormatFromExtension(string extension)
+    {
+        ArgumentNullException.ThrowIfNull(extension);
+
+        return _skiaSharpImageFormatMapping.TryGetValue(extension, out SKEncodedImageFormat imageFormat) ? imageFormat : DefaultImageFormat;
+    }
+
+    private static readonly Dictionary<string, string> MimeTypeMapping = new(StringComparer.InvariantCultureIgnoreCase)
+    {
+        { ".jpe", "image/jpeg" },
+        { ".jpeg", "image/jpeg" },
+        { ".jpg", "image/jpeg" },
+        { ".png", "image/png" }
+    };
+
+    private static readonly Dictionary<string, SKEncodedImageFormat> _skiaSharpImageFormatMapping = new(StringComparer.InvariantCultureIgnoreCase)
+    {
+        { ".png", SKEncodedImageFormat.Png },
+        { ".jpg", SKEncodedImageFormat.Jpeg },
+        { ".jpeg", SKEncodedImageFormat.Jpeg },
+        { ".jpe", SKEncodedImageFormat.Jpeg }
+    };
 }

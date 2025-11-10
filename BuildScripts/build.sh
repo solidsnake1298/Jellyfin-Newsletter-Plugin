@@ -1,6 +1,7 @@
 #!/bin/bash
 TAG=${1}
 
+
 #### V1 ####
 
 # if ! docker images -a | grep mcr.microsoft.com/dotnet/sdk${TAG}.0; then

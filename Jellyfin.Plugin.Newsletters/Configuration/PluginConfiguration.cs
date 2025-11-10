@@ -80,9 +80,6 @@ public class PluginConfiguration : BasePluginConfiguration
             Console.WriteLine(e);
         }
 
-        // default Scraper config
-        ApiKey = string.Empty;
-
         // System Paths
         DataPath = string.Empty;
         TempDirectory = string.Empty;
@@ -100,10 +97,6 @@ public class PluginConfiguration : BasePluginConfiguration
         MoviesEnabled = true;
         SeriesEnabled = true;
         MusicEnabled = true;
-
-        // poster hosting
-        PHType = "Imgur";
-        Hostname = string.Empty;
     }
 
     /// <summary>
@@ -161,25 +154,6 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Gets or sets a string setting.
     /// </summary>
     public string Entry { get; set; }
-
-    // -----------------------------------
-
-    // Scraper Config
-
-    /// <summary>
-    /// Gets or sets a value indicating hosting type.
-    /// </summary>
-    public string PHType { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value for JF hostname accessible outside of network.
-    /// </summary>
-    public string Hostname { get; set; }
-
-    /// <summary>
-    /// Gets or sets a string setting.
-    /// </summary>
-    public string ApiKey { get; set; }
 
     // -----------------------------------
 

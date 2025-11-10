@@ -11,16 +11,6 @@ This plugin automacially scans a users library (default every 4 hours), populate
     <img src='https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/blob/master/NewsletterExample.png?raw=true'/><br>
 </p>
 
-# Current Limitations
-1. Imgur's API is one available option to upload poster images for newsletter emails to fetch images. Imgur (according to their Documentation) limits uploads to 12,500/day. 
-    - HOWEVER, according to some documentation I have just discovered, there is a limit of 500 requests/hour for each user _(IP address)_ hitting the API
-    - **This plugin is configured to reference existing Images from previous scans (including current) as to not duplicate requests to Imgur and use up the daily upload limit**
-    - Sign up to get an API key in order to use this plugin.
-        - Helpful Links:
-            - https://dev.to/bearer/how-to-configure-the-imgur-api-2ap9
-            - http://siberiancmscustomization.blogspot.com/2020/10/how-to-get-imgur-client-id.html
-    - ***Users can bypass this limitation as of V0.5.0 with the ability to use Jellyfin's API to serve images!***
-
 # File Structure
 To ensure proper images are being pulled from Jellyfin's database, ensure you follow the standard Organization Scheme for naming and organizing your files. https://jellyfin.org/docs/general/server/media/books
 
@@ -111,13 +101,7 @@ For defaults, see `Jellyfin.Plugin.Newsletters/Templates/`
 ## Scraper/Scanner Config
 
 ### Poster Hosting Type
-- The type of poster hosting you want to use
-    - Options include:
-        - Imgur (Default)
-        - Local Hosting from Jellyfin's API  
-
-### Imgur API Key
-- Your Imgur API key (Client ID) to upload images to be available in the newsletter
+- Obsolete.  All images are base64 encoded and embedded in the outgoing email.
 
 ### Hostname
 - Your servername/hostname/DNS entry (and Port if applicable) to allow users to access images hosted locally on your server.
@@ -161,12 +145,8 @@ Some of these may not interest that average user (if anyone), but I figured I wo
 - {TitleInfo} - This tag is the Plugin-generated Season/Episode data
 - {Title} - Title of Movie/Series
 - {Overview} - Movie/Series overview
-- {ImageURL} - Poster image for the Movie/Series
+- {ImageURL} - Base64 encoded image string.
 - {Type} - Item type (Movie or Series)
-- {PremiereYear} - Year Movie/Series was Premiered
-- {RunTime} - Movie/Episode Duration (for Series, gives first found duration. Will fix for only single episode or average in future update) 
-- {OfficialRating} - TV-PG, TV-13, TV-14, etc.
-- {CommunityRating} - Numerical rating stored in Jellyfin's metadata
 ```
 ## Non-Recommended Tags
 These tags are ***available*** but not recommended to use. Untested behavior using these.

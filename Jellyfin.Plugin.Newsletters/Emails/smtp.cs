@@ -99,13 +99,15 @@ public class Smtp : ControllerBase
                 string body = hb.GetDefaultHTMLBody();
                 string builtString = hb.BuildDataHtmlStringFromNewsletterData();
                 // string finalBody = hb.ReplaceBodyWithBuiltString(body, builtString);
-                // string finalBody = hb.TemplateReplace(hb.ReplaceBodyWithBuiltString(body, builtString), "{ServerURL}", config.Hostname);
-                builtString = hb.TemplateReplace(hb.ReplaceBodyWithBuiltString(body, builtString), "{ServerURL}", config.Hostname);
                 string currDate = DateTime.Today.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
                 builtString = builtString.Replace("{Date}", currDate, StringComparison.Ordinal);
+                builtString += hb.BuildContentIdString();
 
                 mail.From = new MailAddress(emailFromAddress, emailFromAddress);
                 mail.To.Clear();
+                mail.Headers.Add("MIME-Version", "1.0");
+                mail.Headers.Add("Content-Type", "multipart/mixed");
+                mail.Headers.Add("Content-Type", "boundary='----blackmoon'" );
                 mail.Subject = subject;
                 mail.Body = Regex.Replace(builtString, "{[A-za-z]*}", " "); // Final cleanup
                 mail.IsBodyHtml = true;

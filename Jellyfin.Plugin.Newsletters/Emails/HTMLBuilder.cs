@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Newsletters.Configuration;
 using Jellyfin.Plugin.Newsletters.LOGGER;
+using Jellyfin.Plugin.Newsletters.Scanner.NLImageHandler;
 using Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
 using Jellyfin.Plugin.Newsletters.Scripts.SCRAPER;
 using Jellyfin.Plugin.Newsletters.Shared.DATA;
@@ -39,6 +40,8 @@ public class HtmlBuilder
     private Logger logger;
     private SQLiteDatabase db;
     private JsonFileObj jsonHelper;
+    private ContentIdJson contentIdHelper;
+    List<string> contentIdList = new List<string>();
 
     // Non-readonly
     private static string append = "Append";
@@ -49,6 +52,7 @@ public class HtmlBuilder
     {
         logger = new Logger();
         jsonHelper = new JsonFileObj();
+        contentIdHelper = new ContentIdJson();
         db = new SQLiteDatabase();
         config = Plugin.Instance!.Configuration;
         emailBody = config.Body;
@@ -129,6 +133,7 @@ public class HtmlBuilder
             {
                 if (row is not null)
                 {
+                    ContentIdJson contentID = new ContentIdJson();
                     JsonFileObj item = jsonHelper.ConvertToObj(row);
                     // scan through all items and get all Season numbers and Episodes
                     // (string seasonInfo, string episodeInfo) = ParseSeriesInfo(obj, readDataFile);
@@ -149,6 +154,10 @@ public class HtmlBuilder
                     // logger.Debug("TESTING");
                     // logger.Debug(item.GetDict()["Filename"]);
 
+                    contentID.PosterPath = item.PosterPath;
+                    contentID.ItemID = item.ItemID;
+                    contentID.MimeType = PosterImageHandler.GetMimeTypeFromExtension(Path.GetExtension(item.PosterPath));
+
                     foreach (KeyValuePair<string, object?> ele in item.GetReplaceDict())
                     {
                         if (ele.Value is not null)
@@ -158,7 +167,9 @@ public class HtmlBuilder
                     }
 
                     builtHTMLString += tmp_entry.Replace("{TitleInfo}", seaEpsHtml, StringComparison.Ordinal)
-                                                .Replace("{ServerURL}", config.Hostname, StringComparison.Ordinal);
+                                                .Replace("{ImageURL}", "cid:" + item.ItemID, StringComparison.Ordinal);
+
+                    contentIdList.Add(JsonConvert.SerializeObject(contentID));
                     completed.Add(item.Title);
                 }
             }
@@ -167,6 +178,7 @@ public class HtmlBuilder
             {
                 if (row is not null)
                 {
+                    ContentIdJson contentID = new ContentIdJson();
                     JsonFileObj item = jsonHelper.ConvertToObj(row);
                     // scan through all items and get all Season numbers and Episodes
                     // (string seasonInfo, string episodeInfo) = ParseSeriesInfo(obj, readDataFile);
@@ -187,6 +199,10 @@ public class HtmlBuilder
                     var tmp_entry = config.Entry;
                     // logger.Debug("TESTING");
                     // logger.Debug(item.GetDict()["Filename"]);
+                    
+                    contentID.PosterPath = item.PosterPath;
+                    contentID.ItemID = item.ItemID;
+                    contentID.MimeType = PosterImageHandler.GetMimeTypeFromExtension(Path.GetExtension(item.PosterPath));
 
                     foreach (KeyValuePair<string, object?> ele in item.GetReplaceDict())
                     {
@@ -197,7 +213,10 @@ public class HtmlBuilder
                     }
 
                     builtHTMLString += tmp_entry.Replace("{TitleInfo}", albumsHtml, StringComparison.Ordinal)
-                                                .Replace("{ServerURL}", config.Hostname, StringComparison.Ordinal);
+                                                .Replace("{ImageURL}", "cid:" + contentID.ItemID, StringComparison.Ordinal);
+                    
+                    
+                    contentIdList.Add(JsonConvert.SerializeObject(contentID));
                     completed.Add(item.Title);
                 }
             }
@@ -212,6 +231,34 @@ public class HtmlBuilder
         }
 
         return builtHTMLString;
+    }
+
+    public string BuildContentIdString()
+    {
+        string builtContentIdString = string.Empty;
+        foreach (var row in contentIdList)
+        {
+            if (row is not null)
+            {
+                ContentIdJson contentID = JsonConvert.DeserializeObject<ContentIdJson>(row);
+                string mimeType = contentID.MimeType;
+                string fullPosterPath = contentID.PosterPath;
+                string posterPath = Path.GetFileName(contentID.PosterPath);
+                string itemId = contentID.ItemID;
+                    
+                logger.Debug($"MimeType:: {mimeType}, FullFileName:: {fullPosterPath}, fileName:: {posterPath}, ItemID:: {itemId}");
+
+                builtContentIdString += "----blackmoon\\@{itemId}";
+                builtContentIdString += "Content-Type: {mimeType}; name={fileName}";
+                builtContentIdString += "Content-Disposition: inline; filename={posterPath}";
+                builtContentIdString += "Content-Transfer-Encoding: base64";
+                builtContentIdString += "Content-ID: {itemId}";
+                builtContentIdString += "Content-Location: {fileName}";
+                builtContentIdString += PosterImageHandler.ConvertImageToBase64(fullPosterPath);
+                builtContentIdString += "----blackmoon\\@{itemId}";
+            }
+        }
+        return builtContentIdString;
     }
 
     private string GetSeasonEpisodeHTML(List<NlDetailsJson> list)
@@ -270,6 +317,7 @@ public class HtmlBuilder
         {
             logger.Debug("After Sort in foreach: Season::" + item.Season + "; Episode::" + item.Episode);
             logger.Debug("Count/list_len: " + count + "/" + list_len);
+            currSeriesDetailsObj.Title = item.Title;
 
             NlDetailsJson CopyJsonFromExisting(NlDetailsJson obj)
             {
@@ -482,6 +530,7 @@ public class HtmlBuilder
         {
             logger.Debug("After Sort in foreach: Album::" + item.Album);
             logger.Debug("Count/list_len: " + count + "/" + list_len);
+            currAlbumDetailsObj.Title = item.Title;
 
             NlDetailsJson CopyJsonFromExisting(NlDetailsJson obj)
             {
@@ -512,7 +561,7 @@ public class HtmlBuilder
 
         foreach (NlDetailsJson item in finalList)
         {
-            logger.Debug("FinalListObjs: " + JsonConvert.SerializeObject(item));
+            logger.Debug("FinalListObjs: " + JsonConvert.SerializeObject(currAlbumDetailsObj));
         }
 
         return finalList;
