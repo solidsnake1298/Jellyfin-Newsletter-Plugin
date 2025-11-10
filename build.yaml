@@ -2,7 +2,7 @@
 name: "Newsletters"
 guid: "60f478ab-2dd6-4ea0-af10-04d033f75979"
 imageUrl: "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png"
-version: "0.9.0.1"
+version: "1.0.0.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Send newsletters for recently added media"
@@ -13,5 +13,5 @@ artifacts:
   - "Jellyfin.Plugin.Newsletters.dll"
   - "SQLitePCL.pretty.dll"
 changelog: >
-  - Removing JFHosting and Imgur URL hosting in favor of embedded base64 encoded images.
+  - Fixed numbering for seasons that had multiple versions of an episode.
   FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md

@@ -326,13 +326,21 @@ public class HtmlBuilder
                 // process season, them increment
                 logger.Debug("EndOfSeason()");
                 logger.Debug($"tempEpsList Size: {tempEpsList.Count}");
+                tempEpsList = tempEpsList.Distinct().OrderBy(x => x).ToList();
                 if (tempEpsList.Count != 0)
                 {
                     logger.Debug("tempEpsList is populated");
                     tempEpsList.Sort();
                     if (IsIncremental(tempEpsList))
                     {
-                        currSeriesDetailsObj.EpisodeRange = tempEpsList.First() + " - " + tempEpsList.Last();
+                        if (tempEpsList.Count == 1)
+                        {
+                            currSeriesDetailsObj.EpisodeRange = $"{tempEpsList.First()}";
+                        }
+                        else
+                        {
+                            currSeriesDetailsObj.EpisodeRange = tempEpsList.First() + " - " + tempEpsList.Last();
+                        }
                     }
                     else if (tempEpsList.First() == tempEpsList.Last())
                     {
