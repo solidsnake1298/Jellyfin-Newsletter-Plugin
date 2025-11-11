@@ -152,6 +152,16 @@ public class Smtp : ControllerBase
                 smtp.Send(mail);
 
                 hb.CleanUp(builtString);
+                // Attachment Image dir cleanup
+                System.IO.DirectoryInfo di = new DirectoryInfo($"{attachmentImagePath}");
+                foreach (FileInfo file in di.GetFiles())
+                {
+                    file.Delete(); 
+                }
+                foreach (DirectoryInfo dir in di.GetDirectories())
+                {
+                    dir.Delete(true); 
+                }
             }
             else
             {
