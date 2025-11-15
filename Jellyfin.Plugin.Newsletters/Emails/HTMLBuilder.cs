@@ -156,7 +156,6 @@ public class HtmlBuilder
 
                     contentID.PosterPath = item.PosterPath;
                     contentID.ItemID = item.ItemID;
-                    contentID.MimeType = PosterImageHandler.GetMimeTypeFromExtension(Path.GetExtension(item.PosterPath));
 
                     foreach (KeyValuePair<string, object?> ele in item.GetReplaceDict())
                     {
@@ -167,7 +166,7 @@ public class HtmlBuilder
                     }
 
                     builtHTMLString += tmp_entry.Replace("{TitleInfo}", seaEpsHtml, StringComparison.Ordinal)
-                                                .Replace("{ImageURL}", "cid:<" + item.ItemID+ ">", StringComparison.Ordinal);
+                                                .Replace("{ImageURL}", "cid:<" + item.ItemID + ">", StringComparison.Ordinal);
 
                     contentIdList.Add(JsonConvert.SerializeObject(contentID));
                     completed.Add(item.Title);
@@ -202,7 +201,6 @@ public class HtmlBuilder
                     
                     contentID.PosterPath = item.PosterPath;
                     contentID.ItemID = item.ItemID;
-                    contentID.MimeType = PosterImageHandler.GetMimeTypeFromExtension(Path.GetExtension(item.PosterPath));
 
                     foreach (KeyValuePair<string, object?> ele in item.GetReplaceDict())
                     {
@@ -214,7 +212,6 @@ public class HtmlBuilder
 
                     builtHTMLString += tmp_entry.Replace("{TitleInfo}", albumsHtml, StringComparison.Ordinal)
                                                 .Replace("{ImageURL}", "cid:<" + item.ItemID + ">", StringComparison.Ordinal);
-                    
                     
                     contentIdList.Add(JsonConvert.SerializeObject(contentID));
                     completed.Add(item.Title);

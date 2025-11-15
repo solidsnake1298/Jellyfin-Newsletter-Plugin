@@ -21,6 +21,7 @@ using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -36,6 +37,7 @@ public class Scraper
     // Readonly
     private readonly PluginConfiguration config;
     private readonly ILibraryManager libManager;
+    private readonly IRecordingsManager recManager;
 
     // Non-readonly
     private int totalLibCount;
@@ -46,8 +48,9 @@ public class Scraper
     private Logger logger;
     private IProgress<double> progress;
     private CancellationToken cancelToken;
+    private string[] liveTvRootPaths = Array.Empty<string>();
 
-    public Scraper(ILibraryManager libraryManager, IProgress<double> passedProgress, CancellationToken cancellationToken)
+    public Scraper(ILibraryManager libraryManager, IRecordingsManager recordingManager, IProgress<double> passedProgress, CancellationToken cancellationToken)
     {
         logger = new Logger();
         jsonHelper = new JsonFileObj();
@@ -55,6 +58,7 @@ public class Scraper
         cancelToken = cancellationToken;
         config = Plugin.Instance!.Configuration;
         libManager = libraryManager;
+        recManager = recordingManager;
 
         totalLibCount = currCount = 0;
 
@@ -95,6 +99,18 @@ public class Scraper
 
     private void BuildJsonObjsToCurrScanfile()
     {
+        // Finds collection folders to then parse to build a string array to omit live TV recordings from BuildObjs parsing
+        var recordingRootPaths = recManager.GetRecordingFolders();
+        var recordingRootArray = recordingRootPaths.SelectMany(e => e.Locations).ToArray();
+        List<string> recordingRootList = new List<string>();
+        foreach (var recPath in recordingRootArray)
+        {
+            logger.Debug($"Recording Path:: {recPath}");
+            recordingRootList.Add($"{recPath}");
+        }
+
+        liveTvRootPaths = recordingRootList.ToArray();
+
         if (!config.SeriesEnabled && !config.MoviesEnabled && !config.MusicEnabled)
         {
             logger.Info("No Libraries Enabled In Config!");
@@ -105,13 +121,6 @@ public class Scraper
             InternalItemsQuery series = new InternalItemsQuery();
             series.IncludeItemTypes = new[] { BaseItemKind.Episode };
             BuildObjs(libManager.GetItemList(series).ToList(), "Series"); // populate series
-
-            // BuildObjs(
-            //     libManager.GetItemList(new InternalItemsQuery
-            //     {
-            //         IncludeItemTypes = new[] { BaseItemKind.Episode }
-            //     }),
-            //     "Series");
         }
 
         if (config.MoviesEnabled)
@@ -119,13 +128,6 @@ public class Scraper
             InternalItemsQuery movie = new InternalItemsQuery();
             movie.IncludeItemTypes = new[] { BaseItemKind.Movie };
             BuildObjs(libManager.GetItemList(movie).ToList(), "Movie"); // populate movies
-
-            // BuildObjs(
-            //     libManager.GetItemList(new InternalItemsQuery
-            //     {
-            //         IncludeItemTypes = new[] { BaseItemKind.Movie }
-            //     }),
-            //     "Movie");
         }
 
         if (config.MusicEnabled)
@@ -133,13 +135,6 @@ public class Scraper
             InternalItemsQuery album = new InternalItemsQuery();
             album.IncludeItemTypes = new[] { BaseItemKind.MusicAlbum };
             BuildObjs(libManager.GetItemList(album).ToList(), "Album"); // populate music albums
-
-            // BuildObjs(
-            //     libManager.GetItemList(new InternalItemsQuery
-            //     {
-            //         IncludeItemTypes = new[] { BaseItemKind.Audio }
-            //     }),
-            //     "Music");
         }
     }
 
@@ -156,6 +151,16 @@ public class Scraper
             currCount++;
             progress.Report((double)currCount / (double)totalLibCount * 100);
             bool inDatabase = false;
+            bool isLiveTV = false;
+            foreach (string liveTvRoot in liveTvRootPaths)
+            {
+                isLiveTV = item.Path.Contains(liveTvRoot, StringComparison.InvariantCulture);
+                if (isLiveTV)
+                {
+                    break;
+                }
+            }
+
             if (type == "Album")
             {
                 string path = Path.GetDirectoryName(item.Path).Replace("'", string.Empty, StringComparison.Ordinal);
@@ -166,7 +171,7 @@ public class Scraper
                 inDatabase = InDatabase(item.Path.Replace("'", string.Empty, StringComparison.Ordinal));
             }
 
-            if ((item is not null) && !inDatabase)
+            if ((item is not null) && !inDatabase && !isLiveTV)
             {
                 JsonFileObj currFileObj = new JsonFileObj();
                 try
@@ -223,7 +228,7 @@ public class Scraper
                 }
                 catch (Exception e)
                 {
-                    logger.Error("Error processing item..");
+                    logger.Error($"Error processing item::{item.Path}");
                     logger.Error(e);
                     continue;
                 }
@@ -264,6 +269,11 @@ public class Scraper
             else if (inDatabase)
             {
                 logger.Debug("\"" + item.Path + "\" has already been processed either by Previous or Current Newsletter!");
+                continue;
+            }
+            else if (isLiveTV)
+            {
+                logger.Debug($"{item.Path} is a live TV recording.  Skipping.");
                 continue;
             }
         }

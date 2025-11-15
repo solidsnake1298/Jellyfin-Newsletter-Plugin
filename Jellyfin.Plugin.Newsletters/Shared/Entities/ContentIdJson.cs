@@ -16,13 +16,10 @@ public class ContentIdJson
     public ContentIdJson()
     {
         ItemID = string.Empty;
-        MimeType = string.Empty;
         PosterPath = string.Empty;
     }
 
     public string ItemID { get; set; }
-    
-    public string MimeType { get; set; }
     
     public string PosterPath { get; set; }
 
@@ -33,8 +30,7 @@ public class ContentIdJson
         ContentIdJson obj = new ContentIdJson()
         {
             ItemID = row[0].ToString(),
-            MimeType = row[1].ToString(),
-            PosterPath = row[2].ToString()
+            PosterPath = row[1].ToString()
         };
 
         return obj;
@@ -44,7 +40,6 @@ public class ContentIdJson
     {
         Dictionary<string, object?> item_dict = new Dictionary<string, object?>();
         item_dict.Add("{ItemID}", this.ItemID);
-        item_dict.Add("{MimeType}", this.MimeType);
 
         return item_dict;        
     }

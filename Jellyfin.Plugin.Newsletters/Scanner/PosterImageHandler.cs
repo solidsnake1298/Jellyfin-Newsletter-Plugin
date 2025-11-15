@@ -41,18 +41,12 @@ public class PosterImageHandler
     private SQLiteDatabase db;
     private JsonFileObj jsonHelper;
 
-    // Non-readonly
-    private List<JsonFileObj> archiveSeriesList;
-    // private List<string> fileList;
-
     public PosterImageHandler()
     {
         logger = new Logger();
         db = new SQLiteDatabase();
         config = Plugin.Instance!.Configuration;
         jsonHelper = new JsonFileObj();
-
-        archiveSeriesList = new List<JsonFileObj>();
     }
 
     public static Stream ResizeImage(string imgPath)
@@ -86,7 +80,8 @@ public class PosterImageHandler
             }
             else
             {
-                using (var scaledBitmap = skImage.Resize(new SKSizeI(200, newHeight), SKFilterQuality.Low))
+                SKSamplingOptions samplingOptions = new SKSamplingOptions(SKFilterMode.Nearest, SKMipmapMode.Nearest);
+                using (var scaledBitmap = skImage.Resize(new SKSizeI(200, newHeight), samplingOptions))
                 {
                     using (var image = SKImage.FromBitmap(scaledBitmap))
                     {
@@ -95,7 +90,6 @@ public class PosterImageHandler
                             var stream = new MemoryStream();
                             encodedImage.SaveTo(stream);
                             stream.Seek(0, SeekOrigin.Begin);
-                            //string base64Image = Convert.ToBase64String(stream.ToArray());
                             return stream;
                         }
                     }
@@ -104,33 +98,53 @@ public class PosterImageHandler
         }
     }
 
+    public static Stream DrawBlackSquare()
+    {
+        var info = new SKImageInfo(200, 200, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using var surface = SKSurface.Create(info);
+        var canvas = surface.Canvas;
+        using var paint = new SKPaint();
+        paint.Color = SKColors.Black;
+        var square = new SKRect(0, 0, 0 + 200, 0 + 200);
+        canvas.DrawRect(square, paint);
+        var streamImage = surface.Snapshot();
+
+        using (var encodedImage = streamImage.Encode(GetSkiaSharpImageFormatFromExtension(".png"), 50))
+        {
+            var stream = new MemoryStream();
+            encodedImage.SaveTo(stream);
+            stream.Seek(0, SeekOrigin.Begin);
+            return stream;
+        }
+    }
+
     public static string GetMimeTypeFromExtension(string extension)
     {
         ArgumentNullException.ThrowIfNull(extension);
 
-        return MimeTypeMapping.TryGetValue(extension, out string mimeType) ? mimeType : DefaultMimeType;
+        Dictionary<string, string> mimeTypeMapping = new Dictionary<string, string>
+        {
+            { ".jpe", "image/jpeg" },
+            { ".jpeg", "image/jpeg" },
+            { ".jpg", "image/jpeg" },
+            { ".png", "image/png" }
+        };
+
+        return mimeTypeMapping.TryGetValue(extension, out string mimeType) ? mimeType : DefaultMimeType;
     }
 
     private static SKEncodedImageFormat GetSkiaSharpImageFormatFromExtension(string extension)
     {
         ArgumentNullException.ThrowIfNull(extension);
 
-        return _skiaSharpImageFormatMapping.TryGetValue(extension, out SKEncodedImageFormat imageFormat) ? imageFormat : DefaultImageFormat;
+        Dictionary<string, SKEncodedImageFormat> skiaSharpImageFormatMapping = new(StringComparer.InvariantCultureIgnoreCase)
+        {
+            { ".png", SKEncodedImageFormat.Png },
+            { ".jpg", SKEncodedImageFormat.Jpeg },
+            { ".jpeg", SKEncodedImageFormat.Jpeg },
+            { ".jpe", SKEncodedImageFormat.Jpeg }
+        };
+
+        return skiaSharpImageFormatMapping.TryGetValue(extension, out SKEncodedImageFormat imageFormat) ? imageFormat : DefaultImageFormat;
     }
-
-    private static readonly Dictionary<string, string> MimeTypeMapping = new(StringComparer.InvariantCultureIgnoreCase)
-    {
-        { ".jpe", "image/jpeg" },
-        { ".jpeg", "image/jpeg" },
-        { ".jpg", "image/jpeg" },
-        { ".png", "image/png" }
-    };
-
-    private static readonly Dictionary<string, SKEncodedImageFormat> _skiaSharpImageFormatMapping = new(StringComparer.InvariantCultureIgnoreCase)
-    {
-        { ".png", SKEncodedImageFormat.Png },
-        { ".jpg", SKEncodedImageFormat.Jpeg },
-        { ".jpeg", SKEncodedImageFormat.Jpeg },
-        { ".jpe", SKEncodedImageFormat.Jpeg }
-    };
 }

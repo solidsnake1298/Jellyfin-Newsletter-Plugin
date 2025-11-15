@@ -28,7 +28,7 @@ namespace Jellyfin.Plugin.Newsletters.Emails.EMAIL;
 /// </summary>
 // [Route("newsletters/[controller]")]
 [Authorize(Policy = Policies.RequiresElevation)]
-[ApiController]
+[ApiController] 
 [Route("Smtp")]
 public class Smtp : ControllerBase
 {
@@ -36,7 +36,6 @@ public class Smtp : ControllerBase
     // private readonly string newsletterDataFile;
     private SQLiteDatabase db;
     private Logger logger;
-    private ContentIdJson contentIdHelper;
 
     public Smtp()
     {
@@ -111,24 +110,43 @@ public class Smtp : ControllerBase
                 string currDate = DateTime.Today.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
                 builtString = builtString.Replace("{Date}", currDate, StringComparison.Ordinal);
                 List<string> contentId = hb.BuildContentId();
-                string attachmentImagePath = config.DataPath + "/newsletterImages";
+                string attachmentDir = config.DataPath + "/newsletterImages";
                 foreach (var row in contentId)
                 {
-                    ContentIdJson contentID = JsonConvert.DeserializeObject<ContentIdJson>(row);
-                    string posterPath = contentID.PosterPath;
-                    string itemID = contentID.ItemID;
-                    string mimeType = contentID.MimeType;
-                    string extension = Path.GetExtension(posterPath);
-                    var imageStream = PosterImageHandler.ResizeImage(posterPath);
-                    imageStream.Position = 0;
-                    Directory.CreateDirectory(attachmentImagePath);
-                    var fileStream = System.IO.File.Create($"{attachmentImagePath}/{itemID}{extension}");
-                    imageStream.CopyTo(fileStream);
-                    fileStream.Close();
-                    Attachment fileAttachment = new Attachment($"{attachmentImagePath}/{itemID}{extension}");
-                    fileAttachment.ContentDisposition.Inline = false;
-                    fileAttachment.ContentId = itemID;
-                    mail.Attachments.Add(fileAttachment);
+                    try
+                    {
+                        ContentIdJson contentID = JsonConvert.DeserializeObject<ContentIdJson>(row);
+                        string posterPath = contentID.PosterPath;
+                        string itemID = contentID.ItemID;
+                        string extension = string.Empty;
+                        string uriScheme = new Uri(posterPath).Scheme;
+                        Directory.CreateDirectory(attachmentDir);
+                        Stream imageStream;
+                        if (extension is null || posterPath is null)
+                        {
+                            imageStream = PosterImageHandler.DrawBlackSquare();
+                            extension = ".png";
+                        }
+                        else
+                        {
+                            imageStream = PosterImageHandler.ResizeImage(posterPath);
+                            extension = Path.GetExtension(posterPath);
+                        }
+
+                        imageStream.Position = 0;
+                        string attachmentPath = $"{attachmentDir}/{itemID}{extension}";
+                        var fileStream = System.IO.File.Create($"{attachmentPath}");
+                        imageStream.CopyTo(fileStream);
+                        fileStream.Close();
+                        Attachment fileAttachment = new Attachment($"{attachmentPath}");
+                        fileAttachment.ContentDisposition.Inline = false;
+                        fileAttachment.ContentId = itemID;
+                        mail.Attachments.Add(fileAttachment);
+                    }
+                    catch
+                    {
+                        logger.Debug("Error generating image attachment.  Null image path?");
+                    }
                 }
                 
                 mail.From = new MailAddress(emailFromAddress, emailFromAddress);
@@ -153,11 +171,12 @@ public class Smtp : ControllerBase
 
                 hb.CleanUp(builtString);
                 // Attachment Image dir cleanup
-                System.IO.DirectoryInfo di = new DirectoryInfo($"{attachmentImagePath}");
+                System.IO.DirectoryInfo di = new DirectoryInfo($"{attachmentDir}");
                 foreach (FileInfo file in di.GetFiles())
                 {
                     file.Delete(); 
                 }
+                
                 foreach (DirectoryInfo dir in di.GetDirectories())
                 {
                     dir.Delete(true); 
