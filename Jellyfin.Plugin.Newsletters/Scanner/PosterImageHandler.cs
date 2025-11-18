@@ -130,7 +130,7 @@ public class PosterImageHandler
             { ".png", "image/png" }
         };
 
-        return mimeTypeMapping.TryGetValue(extension, out string mimeType) ? mimeType : DefaultMimeType;
+        return mimeTypeMapping.TryGetValue(extension, out string? mimeType) ? mimeType : DefaultMimeType;
     }
 
     private static SKEncodedImageFormat GetSkiaSharpImageFormatFromExtension(string extension)

@@ -150,34 +150,50 @@ public class Scraper
             logger.Debug("---------------");
             currCount++;
             progress.Report((double)currCount / (double)totalLibCount * 100);
-            bool inDatabase = false;
-            bool isLiveTV = false;
-            foreach (string liveTvRoot in liveTvRootPaths)
+            if (item is not null)
             {
-                isLiveTV = item.Path.Contains(liveTvRoot, StringComparison.InvariantCulture);
-                if (isLiveTV)
+                bool inDatabase = false;
+                bool isLiveTV = false;
+                if (item.Path is null)
                 {
-                    break;
+                    logger.Debug($"The item path is empty, skipping");
+                    continue;
                 }
-            }
+                else
+                {
+                    foreach (string liveTvRoot in liveTvRootPaths)
+                    {
+                        isLiveTV = (item.Path is not null) ? item.Path.Contains(liveTvRoot, StringComparison.InvariantCulture) : false;
+                        if (isLiveTV)
+                        {
+                            break;
+                        }
+                    }
 
-            if (type == "Album")
-            {
-                string path = Path.GetDirectoryName(item.Path).Replace("'", string.Empty, StringComparison.Ordinal);
-                inDatabase = InDatabase(path);
-            }
-            else
-            {
-                inDatabase = InDatabase(item.Path.Replace("'", string.Empty, StringComparison.Ordinal));
-            }
+                    if (isLiveTV)
+                    {
+                        logger.Debug($"{item.Path} is a live TV recording.  Skipping.");
+                        continue;
+                    }
 
-            if ((item is not null) && !inDatabase && !isLiveTV)
-            {
+                    if (type == "Album")
+                    {
+                        string path = Path.GetDirectoryName(item.Path) ?? "Empty Path";
+                    }
+
+                    inDatabase = (item.Path is not null) ? InDatabase(item.Path.Replace("'", string.Empty, StringComparison.Ordinal)) : true;
+                    if (inDatabase)
+                    {
+                        logger.Debug($"{item.Path} has already been processed either by Previous or Current Newsletter!");
+                        continue;
+                    }
+                }
+
                 JsonFileObj currFileObj = new JsonFileObj();
                 try
                 {
                     logger.Debug($"LocationType: " + item.LocationType.ToString());
-                    logger.Debug($"LocationType: " + item.Path.ToString());
+                    logger.Debug($"LocationType: " + item.Path?.ToString());
                     
                     if (item.LocationType.ToString() == "Virtual")
                     {
@@ -191,6 +207,12 @@ public class Scraper
                         episode = item;
                         season = episode.FindParent<TVEntity.Season>();
                         series = episode.FindParent<TVEntity.Series>();
+                        if ((series is null) || (season is null))
+                        {
+                            logger.Debug($"Season or Series is null, skipping...");
+                            continue;
+                        }
+
                         currFileObj.Type = type;
                         currFileObj = SeriesObj(episode, season, series, currFileObj);
                     }
@@ -264,16 +286,6 @@ public class Scraper
             else if (item is null)
             {
                 logger.Debug("Item is null!");
-                continue;
-            }
-            else if (inDatabase)
-            {
-                logger.Debug("\"" + item.Path + "\" has already been processed either by Previous or Current Newsletter!");
-                continue;
-            }
-            else if (isLiveTV)
-            {
-                logger.Debug($"{item.Path} is a live TV recording.  Skipping.");
                 continue;
             }
         }

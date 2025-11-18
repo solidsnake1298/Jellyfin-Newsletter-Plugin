@@ -117,6 +117,7 @@ public class SQLiteDatabase
             ExecuteSQL("DROP TABLE IF EXISTS CurrRunData");
             ExecuteSQL("DROP TABLE IF EXISTS CurrNewsletterData");
             ExecuteSQL("DROP TABLE IF EXISTS ArchiveData");
+            logger.Debug("Legacy tables successfully migrated.");
         }
         catch
         {

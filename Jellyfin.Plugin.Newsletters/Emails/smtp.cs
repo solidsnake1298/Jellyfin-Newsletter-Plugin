@@ -115,11 +115,10 @@ public class Smtp : ControllerBase
                 {
                     try
                     {
-                        ContentIdJson contentID = JsonConvert.DeserializeObject<ContentIdJson>(row);
-                        string posterPath = contentID.PosterPath;
-                        string itemID = contentID.ItemID;
+                        ContentIdJson? contentID = JsonConvert.DeserializeObject<ContentIdJson>(row);
+                        string? posterPath = (contentID?.PosterPath is not null) ? contentID?.PosterPath : "Empty Path";
+                        string? itemID = contentID?.ItemID;
                         string extension = string.Empty;
-                        string uriScheme = new Uri(posterPath).Scheme;
                         Directory.CreateDirectory(attachmentDir);
                         Stream imageStream;
                         if (extension is null || posterPath is null)
@@ -134,12 +133,12 @@ public class Smtp : ControllerBase
                         }
 
                         imageStream.Position = 0;
-                        string attachmentPath = $"{attachmentDir}/{itemID}{extension}";
+                        string? attachmentPath = $"{attachmentDir}/{itemID}{extension}";
                         var fileStream = System.IO.File.Create($"{attachmentPath}");
                         imageStream.CopyTo(fileStream);
                         fileStream.Close();
-                        Attachment fileAttachment = new Attachment($"{attachmentPath}");
-                        fileAttachment.ContentDisposition.Inline = false;
+                        Attachment? fileAttachment = new Attachment($"{attachmentPath}");
+                        //fileAttachment.ContentDisposition.Inline = false;
                         fileAttachment.ContentId = itemID;
                         mail.Attachments.Add(fileAttachment);
                     }

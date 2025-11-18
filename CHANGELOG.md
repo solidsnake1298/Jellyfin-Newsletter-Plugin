@@ -1,3 +1,12 @@
+# 1.0.0.2
+- Code cleanup. Add logic to avoid unnecessary processing for invalid data. Address compiler warnings for null dereferences.
+
+# 1.0.0.1
+- Added exclusion for live TV recording libraries.
+
+# 1.0.0.0
+- Fixed numbering for seasons with multiple versions of an episode. v1.0 release.
+
 # 0.9.0.0
 - Removing image hosting options, replacing with embedded base64 images
 
