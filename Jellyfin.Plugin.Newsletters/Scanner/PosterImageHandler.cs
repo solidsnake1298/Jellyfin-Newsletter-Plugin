@@ -56,14 +56,12 @@ public class PosterImageHandler
         {
             string extension = Path.GetExtension(imgPath);
             int width = skImage.Width;
+
+            // Creates scale factor for height to maintain aspect ratio for 200px width
             double scaleFactor = 200.0 / width;
-            if (scaleFactor <= 0)
-            {
-                scaleFactor = 0.5;
-            }
             
             int newHeight = (int)(skImage.Height * scaleFactor);
-
+            // if scaleFactor is 1, skip resizing
             if (scaleFactor is 1)
             {
                 using (var image = SKImage.FromBitmap(skImage))
@@ -73,14 +71,13 @@ public class PosterImageHandler
                         var stream = new MemoryStream();
                         encodedImage.SaveTo(stream);
                         stream.Seek(0, SeekOrigin.Begin);
-                        //string base64Image = Convert.ToBase64String(stream.ToArray());
                         return stream;
                     }
                 }
             }
             else
             {
-                SKSamplingOptions samplingOptions = new SKSamplingOptions(SKFilterMode.Nearest, SKMipmapMode.Nearest);
+                SKSamplingOptions samplingOptions = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
                 using (var scaledBitmap = skImage.Resize(new SKSizeI(200, newHeight), samplingOptions))
                 {
                     using (var image = SKImage.FromBitmap(scaledBitmap))

@@ -9,6 +9,14 @@
         "imageUrl": "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png",
         "versions": [
             {
+                "version": "1.1.0.0",
+                "changelog": "- Code cleanup. - Adding tracker for \"last successful run\". - Use tracker to set MinLastDateSaved in calls to Jellyfin library manager to only retrieve new library items. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v1.1.0.0/newsletters_1.1.0.0.zip",
+                "checksum": "be797c779db3394cea00fda5dad17ab2",
+                "timestamp": "2025-11-20T14:45:06Z"
+            },
+            {
                 "version": "1.0.0.2",
                 "changelog": "- Code cleanup.  Add logic to avoid unnecessary processing for invalid data.  Address compiler warnings for null dereferences. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",

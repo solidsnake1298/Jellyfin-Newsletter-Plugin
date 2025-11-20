@@ -19,8 +19,6 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-// using System.Net.NetworkCredential;
-
 namespace Jellyfin.Plugin.Newsletters.Emails.EMAIL;
 
 /// <summary>
@@ -89,7 +87,6 @@ public class Smtp : ControllerBase
             if (NewsletterDbIsPopulated())
             {
                 logger.Debug("Sending out mail!");
-                // Smtp varsmtp = new Smtp();
                 MailMessage mail = new MailMessage();
                 string smtpAddress = config.SMTPServer;
                 int portNumber = config.SMTPPort;
@@ -99,46 +96,42 @@ public class Smtp : ControllerBase
                 string password = config.SMTPPass;
                 string emailToAddress = config.ToAddr;
                 string subject = config.Subject;
-                // string body;
 
+                // Builds email HTML
                 HtmlBuilder hb = new HtmlBuilder();
 
+                // Generates initial HTML body
                 string body = hb.GetDefaultHTMLBody();
+                // Generates then inserts each entry (series, movie, album) into the body
                 string builtString = hb.BuildDataHtmlStringFromNewsletterData();
-                // string finalBody = hb.ReplaceBodyWithBuiltString(body, builtString);
                 builtString = hb.ReplaceBodyWithBuiltString(body, builtString);
+                // Adds current date to top of newsletter
                 string currDate = DateTime.Today.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
                 builtString = builtString.Replace("{Date}", currDate, StringComparison.Ordinal);
+                // Retrieves, resizes, and attaches/embed images into email
                 List<string> contentId = hb.BuildContentId();
                 string attachmentDir = config.DataPath + "/newsletterImages";
                 foreach (var row in contentId)
                 {
                     try
                     {
+                        // Uses series/movie/album artist itemID as HTML content ID tag key
                         ContentIdJson? contentID = JsonConvert.DeserializeObject<ContentIdJson>(row);
-                        string? posterPath = (contentID?.PosterPath is not null) ? contentID?.PosterPath : "Empty Path";
-                        string? itemID = contentID?.ItemID;
+                        string posterPath = contentID!.PosterPath;
+                        string itemID = contentID!.ItemID;
                         string extension = string.Empty;
                         Directory.CreateDirectory(attachmentDir);
                         Stream imageStream;
-                        if (extension is null || posterPath is null)
-                        {
-                            imageStream = PosterImageHandler.DrawBlackSquare();
-                            extension = ".png";
-                        }
-                        else
-                        {
-                            imageStream = PosterImageHandler.ResizeImage(posterPath);
-                            extension = Path.GetExtension(posterPath);
-                        }
-
+                        // Resizes image 
+                        imageStream = PosterImageHandler.ResizeImage(posterPath);
+                        extension = Path.GetExtension(posterPath);
+                        // Writes resized image to disk, attaches to email
                         imageStream.Position = 0;
                         string? attachmentPath = $"{attachmentDir}/{itemID}{extension}";
                         var fileStream = System.IO.File.Create($"{attachmentPath}");
                         imageStream.CopyTo(fileStream);
                         fileStream.Close();
                         Attachment? fileAttachment = new Attachment($"{attachmentPath}");
-                        //fileAttachment.ContentDisposition.Inline = false;
                         fileAttachment.ContentId = itemID;
                         mail.Attachments.Add(fileAttachment);
                     }
@@ -148,6 +141,7 @@ public class Smtp : ControllerBase
                     }
                 }
                 
+                // SMTP header
                 mail.From = new MailAddress(emailFromAddress, emailFromAddress);
                 mail.To.Clear();
                 mail.Headers.Add("MIME-Version", "1.0");
@@ -162,7 +156,7 @@ public class Smtp : ControllerBase
                     mail.Bcc.Add(email.Trim());
                 }
 
-                // mail.Attachments.Add(new Attachment("D:\\TestFile.txt"));//--Uncomment this to send any attachment
+                // Sends email
                 SmtpClient smtp = new SmtpClient(smtpAddress, portNumber);
                 smtp.Credentials = new NetworkCredential(username, password);
                 smtp.EnableSsl = enableSSL;

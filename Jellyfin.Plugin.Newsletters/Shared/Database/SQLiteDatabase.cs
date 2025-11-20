@@ -18,7 +18,6 @@ public class SQLiteDatabase
     private string dbLockPath;
     private Logger logger;
     private SQLiteDatabaseConnection? _db;
-    // private bool writeLock;
 
     public SQLiteDatabase()
     {
@@ -46,8 +45,7 @@ public class SQLiteDatabase
             logger.Debug("Opening Database: " + dbFilePath);
             _db = SQLite3.Open(dbFilePath);
             File.WriteAllText(dbLockPath, string.Empty);
-            InitDatabaase();
-            // writeLock = true;
+            InitDatabase();
         }
         else
         {
@@ -55,20 +53,8 @@ public class SQLiteDatabase
         }
     }
 
-    private void InitDatabaase()
+    private void InitDatabase()
     {
-        // Filename = string.Empty;
-        // Title = string.Empty;
-        // Album = string.Empty;
-        // Season = 0;
-        // Episode = 0;
-        // Overview = string.Empty;
-        // ImageURL = string.Empty;
-        // ItemID = string.Empty;
-        // PosterPath = string.Empty;
-        // Type = string.Empty;
-        // Emailed = 0;
-
        logger.Debug("Creating Tables...");
        CreateTables();
        MigrateTables();
@@ -89,6 +75,27 @@ public class SQLiteDatabase
                 "Type TEXT," +
                 "Emailed INT," +
                 "PRIMARY KEY (Filename));");
+        ExecuteSQL("CREATE TABLE IF NOT EXISTS PreviousRun (" +
+                "ID INTEGER NOT NULL," +
+                "LastRun TEXT," +
+                "PRIMARY KEY (ID));");
+        ExecuteSQL("CREATE TRIGGER IF NOT EXISTS PreviousRunNoInsert " + 
+                "BEFORE INSERT ON PreviousRun " +
+                "WHEN (SELECT COUNT(*) FROM PreviousRun) >= 1 " +
+                "BEGIN " +
+                "SELECT RAISE(FAIL, 'Only one row allowed!'); " +
+                "END;");
+        // Initalizes table with default value.  Skips if row is already present.
+        try
+        {
+            ExecuteSQL("INSERT OR IGNORE INTO PreviousRun (" +
+                "ID,LastRun) " +
+                "VALUES (0,'12/30/2018 00:00:00 AM');");
+        }
+        catch
+        {
+            logger.Debug("PreviousRun already populated.");
+        }
     }
     
     private void MigrateTables()
@@ -141,11 +148,10 @@ public class SQLiteDatabase
     {
         if (File.Exists(dbLockPath)) // Database is locked
         {
-            logger.Debug("Closing Database: " + dbFilePath);
-            // _db.Close();
+            logger.Debug("Disposing DB connection: " + dbFilePath);
+            _db!.Dispose();
+            logger.Debug("Removing database lock file: " + dbLockPath);
             File.Delete(dbLockPath);
-            // logger.Debug("TYPE: " + conn.GetType());
-            // writeLock = true;
         }
         else
         {
