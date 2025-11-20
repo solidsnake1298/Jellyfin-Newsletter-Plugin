@@ -2,17 +2,17 @@
 <p align='center'>
     <img src='https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/blob/master/logo.png?raw=true'/><br>
 </p>
-This is my first end-to-end C# project, but I hope you enjoy!
+This is my first end-to-end C# project, but I hope you enjoy! (This is also true for this fork :D )
 
 # Description
-This plugin automacially scans a users library (default every 4 hours), populates a list of *recently added (not previously scanned)* media, converts that data into HTML format, and sends out emails to a provided list of recipients.
+This plugin automacially scans a user\'s library (default every hour), populates a list of *recently added (not previously scanned)* media, converts that data into HTML format, and sends out emails to a provided list of recipients.  Emails are sent out weekly, by default.
 
 <p align='center'>
     <img src='https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/blob/master/NewsletterExample.png?raw=true'/><br>
 </p>
 
 # File Structure
-To ensure proper images are being pulled from Jellyfin's database, ensure you follow the standard Organization Scheme for naming and organizing your files. https://jellyfin.org/docs/general/server/media/books
+To ensure proper images are being pulled from Jellyfin's database, ensure you follow the standard Organization Scheme for naming and organizing your files. https://jellyfin.org/docs/general/server/media/shows
 
 If this format isn't followed properly, Jellyfin may have issue correctly saving the item's data in the proper database (the database that this plugin uses).
 
@@ -46,6 +46,40 @@ Movies
 └── Film (2010)
     ├── Film-cd1.avi
     └── Film-cd2.avi
+
+Music
+├── Some Artist
+│   ├── Album A
+│   │   ├── Song 1.flac
+│   │   ├── Song 2.flac
+│   │   └── Song 3.flac
+│   └── Album B
+│       ├── Disc 1  // See below for other multi-disc naming options
+│       │    ├── Track 1.m4a
+│       │    ├── Track 2.m4a
+│       │    └── Track 3.m4a
+│       └── Disc 2
+│            ├── Track 1.m4a
+│            ├── Track 2.m4a
+│            └── Track 3.m4a
+└── Album X
+    ├── Whatever You.mp3
+    ├── Like To.mp3
+    ├── Name Your.mp3
+    └── Music Files.mp3
+```
+
+Valid naming options for multi-disc albums is listed <a href=https://github.com/jellyfin/jellyfin/blob/release-10.11.z/Emby.Naming/Common/NamingOptions.cs#L183>here</a>.
+
+```
+"cd",
+"digital media",
+"disc",
+"disk",
+"vol",
+"volume",
+"part",
+"act"
 ```
 
 # Testing/Run Frequency
@@ -53,8 +87,8 @@ Movies
 Testing and Frequency can be managed through your Dashboard > Scheduled Tasks
 
 - There are 2 scheduled tasks:
-    - Email Newsletter: Which generates and sends out the newsletters via email from the data scanned from the task below
-    - Filesystem Scraper:  Which scans your library, parses the data, and gets it ready for the email
+    - Email Newsletter (weekly): Which generates and sends out the newsletters via email from the data scanned from the task below
+    - Filesystem Scraper (hourly):  Which scans your library, parses the data, and gets it ready for the email
 
 # Installation
 
@@ -101,13 +135,10 @@ For defaults, see `Jellyfin.Plugin.Newsletters/Templates/`
 ## Scraper/Scanner Config
 
 ### Poster Hosting Type
-- Obsolete.  All images are base64 encoded and embedded in the outgoing email.
+- Obsolete.  All images are resized and attached to the outgoing email.  ImageURL now uses the content ID of the attachment.
 
 ### Hostname
-- Your servername/hostname/DNS entry (and Port if applicable) to allow users to access images hosted locally on your server.
-    - i.e. https://myDNSentry.com:8096 
-        - **NOTE:** do not put a trailing '/' at the end of the url
-- This is now used as a possible data tag! (even if you don't use self-hosting, set this if you want the `{ServerURL}` to work)
+- Obsolete.  No longer used.
 
 ## SMTP Config
 
@@ -158,7 +189,7 @@ These tags are ***available*** but not recommended to use. Untested behavior usi
 - {PosterPath} - Jellyfin's assigned Poster Path (NOT RECOMMENDED TO USE)
 ```
 ## Known Issues
-See 'issues' tab in GitHub with the lable 'bug'
+See 'issues' tab in GitHub with the label 'bug'
 
 # Contribute
 If you would like to collaborate/contribute, feel free! Make all PR's to the 'development' branch and please note clearly what was added/fixed, thanks!

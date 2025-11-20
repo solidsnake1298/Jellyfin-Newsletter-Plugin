@@ -1,3 +1,8 @@
+# 1.1.0.0
+- Code cleanup.
+- Adding tracker for "last successful run".
+- Use tracker to set MinLastDateSaved in calls to Jellyfin library manager to only retrieve new library items.
+
 # 1.0.0.2
 - Code cleanup. Add logic to avoid unnecessary processing for invalid data. Address compiler warnings for null dereferences.
 
