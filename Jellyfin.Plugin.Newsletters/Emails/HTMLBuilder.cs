@@ -10,11 +10,11 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Newsletters.Configuration;
-using Jellyfin.Plugin.Newsletters.LOGGER;
+using Jellyfin.Plugin.Newsletters.NLPLogger;
 using Jellyfin.Plugin.Newsletters.Scanner.NLImageHandler;
-using Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
-using Jellyfin.Plugin.Newsletters.Scripts.SCRAPER;
-using Jellyfin.Plugin.Newsletters.Shared.DATA;
+using Jellyfin.Plugin.Newsletters.Scripts.Entities;
+using Jellyfin.Plugin.Newsletters.Scripts.Scraper;
+using Jellyfin.Plugin.Newsletters.Shared.Efcore;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller;
@@ -23,7 +23,6 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-// using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Newsletters.Emails.HTMLBuilder;
 
@@ -34,11 +33,9 @@ public class HtmlBuilder
     private readonly PluginConfiguration config;
     private readonly string newslettersDir;
     private readonly string newsletterHTMLFile;
-    // private readonly string[] itemJsonKeys = 
 
     private string emailBody;
     private Logger logger;
-    private SQLiteDatabase db;
     private JsonFileObj jsonHelper;
     private ContentIdJson contentIdHelper;
     private List<string> contentIdList = new List<string>();
@@ -46,14 +43,12 @@ public class HtmlBuilder
     // Non-readonly
     private static string append = "Append";
     private static string write = "Overwrite";
-    // private List<string> fileList;
 
     public HtmlBuilder()
     {
         logger = new Logger();
         jsonHelper = new JsonFileObj();
         contentIdHelper = new ContentIdJson();
-        db = new SQLiteDatabase();
         config = Plugin.Instance!.Configuration;
         emailBody = config.Body;
 
@@ -113,85 +108,89 @@ public class HtmlBuilder
         // Pull data from NewsletterData table
         try
         {
-            db.CreateConnection();
-
-            foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Emailed = 0 AND (Type = 'Series' OR Type = 'Movie');"))
+            using (var db = new NLPContext())
             {
-                if (row is not null)
+                foreach (var row in db.NewsletterData.Where(n => n.Emailed == 0 && (n.Type == "Series" || n.Type == "Movie")).ToList())
+                //foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Emailed = 0 AND (Type = 'Series' OR Type = 'Movie');"))
                 {
-                    ContentIdJson contentID = new ContentIdJson();
-                    JsonFileObj item = jsonHelper.ConvertToObj(row);
-                    // scan through all items and get all Season numbers and Episodes
-                    if (completed.Contains(item.Title))
+                    if (row is not null)
                     {
-                        continue;
-                    }
-
-                    string seaEpsHtml = string.Empty;
-                    if (item.Type == "Series")
-                    {
-                        // for series only
-                        List<NlDetailsJson> parsedInfoList = ParseSeriesInfo(item);
-                        seaEpsHtml += GetSeasonEpisodeHTML(parsedInfoList);
-                    }
-
-                    var tmp_entry = config.Entry;
-
-                    contentID.PosterPath = item.PosterPath;
-                    contentID.ItemID = item.ItemID;
-
-                    foreach (KeyValuePair<string, object?> ele in item.GetReplaceDict())
-                    {
-                        if (ele.Value is not null)
+                        ContentIdJson contentID = new ContentIdJson();
+                        var item = row;
+                        // scan through all items and get all Season numbers and Episodes
+                        if (completed.Contains(item.Title))
                         {
-                            tmp_entry = this.TemplateReplace(tmp_entry, ele.Key, ele.Value);
+                            continue;
                         }
-                    }
 
-                    builtHTMLString += tmp_entry.Replace("{TitleInfo}", seaEpsHtml, StringComparison.Ordinal)
+                        string seaEpsHtml = string.Empty;
+                        if (item.Type == "Series")
+                        {
+                            // for series only
+                            List<NlDetailsJson> parsedInfoList = ParseSeriesInfo(item);
+                            seaEpsHtml += GetSeasonEpisodeHTML(parsedInfoList);
+                        }
+
+                        var tmp_entry = config.Entry;
+
+                        contentID.PosterPath = item.PosterPath;
+                        contentID.ItemID = item.ItemID;
+
+                        foreach (KeyValuePair<string, object?> ele in item.GetReplaceDict())
+                        {
+                            if (ele.Value is not null)
+                            {
+                                tmp_entry = this.TemplateReplace(tmp_entry, ele.Key, ele.Value);
+                            }   
+                        }  
+
+                        // TODO: Replace with morestachio https://github.com/JPVenson/morestachio/wiki/Keywords
+                        builtHTMLString += tmp_entry.Replace("{TitleInfo}", seaEpsHtml, StringComparison.Ordinal)
                                                 .Replace("{ImageURL}", "cid:<" + item.ItemID + ">", StringComparison.Ordinal);
 
-                    contentIdList.Add(JsonConvert.SerializeObject(contentID));
-                    completed.Add(item.Title);
+                        contentIdList.Add(JsonConvert.SerializeObject(contentID));
+                        completed.Add(item.Title);
+                    }
                 }
-            }
 
-            foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Emailed = 0 AND Type = 'Album';"))
-            {
-                if (row is not null)
+                foreach (var row in db.NewsletterData.Where(n => n.Emailed == 0 && n.Type == "Album"))
+                //foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Emailed = 0 AND Type = 'Album';"))
                 {
-                    ContentIdJson contentID = new ContentIdJson();
-                    JsonFileObj item = jsonHelper.ConvertToObj(row);
-                    if (completed.Contains(item.Title))
+                    if (row is not null)
                     {
-                        continue;
-                    }
-
-                    string albumsHtml = string.Empty;
-                    if (item.Type == "Album")
-                    {
-                        List<NlDetailsJson> parsedInfoList = ParseMusicInfo(item);
-                        albumsHtml += GetSeasonEpisodeHTML(parsedInfoList);
-                    }
-
-                    var tmp_entry = config.Entry;
-                    
-                    contentID.PosterPath = item.PosterPath;
-                    contentID.ItemID = item.ItemID;
-
-                    foreach (KeyValuePair<string, object?> ele in item.GetReplaceDict())
-                    {
-                        if (ele.Value is not null)
+                        ContentIdJson contentID = new ContentIdJson();
+                        JsonFileObj item = jsonHelper.ConvertToObj(row);
+                        if (completed.Contains(item.Title))
                         {
-                            tmp_entry = this.TemplateReplace(tmp_entry, ele.Key, ele.Value);
+                            continue;
                         }
-                    }
 
-                    builtHTMLString += tmp_entry.Replace("{TitleInfo}", albumsHtml, StringComparison.Ordinal)
+                        string albumsHtml = string.Empty;
+                        if (item.Type == "Album")
+                        {
+                            List<NlDetailsJson> parsedInfoList = ParseMusicInfo(item);
+                            albumsHtml += GetSeasonEpisodeHTML(parsedInfoList);
+                        }
+
+                        var tmp_entry = config.Entry;
+                    
+                        contentID.PosterPath = item.PosterPath;
+                        contentID.ItemID = item.ItemID;
+
+                        foreach (KeyValuePair<string, object?> ele in item.GetReplaceDict())
+                        {
+                            if (ele.Value is not null)
+                            {
+                                tmp_entry = this.TemplateReplace(tmp_entry, ele.Key, ele.Value);
+                            }
+                        }
+
+                        builtHTMLString += tmp_entry.Replace("{TitleInfo}", albumsHtml, StringComparison.Ordinal)
                                                 .Replace("{ImageURL}", "cid:<" + item.ItemID + ">", StringComparison.Ordinal);
                     
-                    contentIdList.Add(JsonConvert.SerializeObject(contentID));
-                    completed.Add(item.Title);
+                        contentIdList.Add(JsonConvert.SerializeObject(contentID));
+                        completed.Add(item.Title);
+                    }
                 }
             }
         }
@@ -201,7 +200,8 @@ public class HtmlBuilder
         }
         finally
         {
-            db.CloseConnection();
+            //db.CloseConnection();
+            logger.Debug("Finished!!");
         }
 
         return builtHTMLString;
@@ -238,23 +238,27 @@ public class HtmlBuilder
         List<NlDetailsJson> finalList = new List<NlDetailsJson>();
 
         // Creates list of episodes + seasons for a series to be added to the newsletter.  Or individual movies.
-        foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Emailed = 0 AND Title='" + currObj.Title + "';"))
+        using (var db = new NLPContext())
         {
-            if (row is not null)
+            foreach (var row in db.NewsletterData.Where(n => n.Emailed == 0 && n.Title == currObj.Title))
+            //foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Emailed = 0 AND Title='" + currObj.Title + "';"))
             {
-                JsonFileObj helper = new JsonFileObj();
-                JsonFileObj itemObj = helper.ConvertToObj(row);
-
-                NlDetailsJson tempVar = new NlDetailsJson()
+                if (row is not null)
                 {
-                    Title = itemObj.Title,
-                    Season = itemObj.Season,
-                    Episode = itemObj.Episode,
-                    Type = itemObj.Type
-                };
+                    JsonFileObj helper = new JsonFileObj();
+                    JsonFileObj itemObj = helper.ConvertToObj(row);
 
-                logger.Debug("tempVar.Season: " + tempVar.Season + " : tempVar.Episode: " + tempVar.Episode);
-                compiledList.Add(tempVar);
+                    NlDetailsJson tempVar = new NlDetailsJson()
+                    {
+                        Title = itemObj.Title,
+                        Season = itemObj.Season,
+                        Episode = itemObj.Episode,
+                        Type = itemObj.Type
+                    };
+
+                    logger.Debug("tempVar.Season: " + tempVar.Season + " : tempVar.Episode: " + tempVar.Episode);
+                    compiledList.Add(tempVar);
+                }
             }
         }
 
@@ -471,22 +475,26 @@ public class HtmlBuilder
         List<NlDetailsJson> finalList = new List<NlDetailsJson>();
 
         // Creates list of albums to be added to the newsletter
-        foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Emailed = 0 AND Title='" + currObj.Title + "';"))
+        using (var db = new NLPContext())
         {
-            if (row is not null)
+            foreach (var row in db.NewsletterData.Where(n => n.Emailed == 0 && n.Title == currObj.Title))
+            //foreach (var row in db.Query("SELECT * FROM NewsletterData WHERE Emailed = 0 AND Title='" + currObj.Title + "';"))
             {
-                JsonFileObj helper = new JsonFileObj();
-                JsonFileObj itemObj = helper.ConvertToObj(row);
-
-                NlDetailsJson tempVar = new NlDetailsJson()
+                if (row is not null)
                 {
-                    Title = itemObj.Title,
-                    Album = itemObj.Album,
-                    Type = itemObj.Type
-                };
+                    JsonFileObj helper = new JsonFileObj();
+                    JsonFileObj itemObj = helper.ConvertToObj(row);
 
-                logger.Debug("tempVar.Album: " + tempVar.Album);
-                compiledList.Add(tempVar);
+                    NlDetailsJson tempVar = new NlDetailsJson()
+                    {
+                        Title = itemObj.Title,
+                        Album = itemObj.Album,
+                        Type = itemObj.Type
+                    };
+
+                    logger.Debug("tempVar.Album: " + tempVar.Album);
+                    compiledList.Add(tempVar);
+                }
             }
         }
 
@@ -574,7 +582,14 @@ public class HtmlBuilder
 
     private void EmailedNewsletter()
     {
-        db.ExecuteSQL("UPDATE NewsletterData SET Emailed = 1 WHERE Emailed = 0;");
+        using (var db = new NLPContext())
+        {
+            var emailedFiles = db.NewsletterData
+                .Where(n => n.Emailed == 0)
+                .ToList();
+            emailedFiles.Emailed = 1;
+            db.SaveChangesAsync();
+        }
     }
 
     private void WriteFile(string method, string path, string value)

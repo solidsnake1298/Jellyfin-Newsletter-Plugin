@@ -4,22 +4,23 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
 using Jellyfin.Plugin.Newsletters.Configuration;
 using Jellyfin.Plugin.Newsletters.Emails.HTMLBuilder;
-using Jellyfin.Plugin.Newsletters.LOGGER;
+using Jellyfin.Plugin.Newsletters.NLPLogger;
 using Jellyfin.Plugin.Newsletters.Scanner.NLImageHandler;
-using Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
-using Jellyfin.Plugin.Newsletters.Shared.DATA;
+using Jellyfin.Plugin.Newsletters.Scripts.Entities;
+using Jellyfin.Plugin.Newsletters.Shared.Efcore;
 using MediaBrowser.Common.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Jellyfin.Plugin.Newsletters.Emails.EMAIL;
+namespace Jellyfin.Plugin.Newsletters.Emails.Email;
 
 /// <summary>
 /// Interaction logic for SendMail.xaml.
@@ -31,13 +32,10 @@ namespace Jellyfin.Plugin.Newsletters.Emails.EMAIL;
 public class Smtp : ControllerBase
 {
     private readonly PluginConfiguration config;
-    // private readonly string newsletterDataFile;
-    private SQLiteDatabase db;
     private Logger logger;
 
     public Smtp()
     {
-        db = new SQLiteDatabase();
         logger = new Logger();
         config = Plugin.Instance!.Configuration;
     }
@@ -82,7 +80,7 @@ public class Smtp : ControllerBase
     {
         try
         {
-            db.CreateConnection();
+            //db.CreateConnection();
 
             if (NewsletterDbIsPopulated())
             {
@@ -186,25 +184,23 @@ public class Smtp : ControllerBase
         }
         finally
         {
-            db.CloseConnection();
+            logger.Debug("Finished!!");
         }
     }
 
     private bool NewsletterDbIsPopulated()
     {
-        foreach (var row in db.Query("SELECT COUNT(*) FROM NewsletterData WHERE Emailed = 0;"))
+        using (var db = new NLPContext())
         {
-            if (row is not null)
+            int count = db.NewsletterData.Where(n => n.Emailed == 0).Count();
+            if (count > 0)
             {
-                if (int.TryParse(row[0].ToString(), out var x) && x > 0)
-                {
-                    db.CloseConnection();
-                    return true;
-                }
+                return true;                    
+            }
+            else
+            {
+                return false;
             }
         }
-
-        db.CloseConnection();
-        return false;
     }
 }

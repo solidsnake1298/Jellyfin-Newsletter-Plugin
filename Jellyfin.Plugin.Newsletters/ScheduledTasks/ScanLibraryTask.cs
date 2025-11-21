@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Plugin.Newsletters.Scripts.SCRAPER;
+using Jellyfin.Plugin.Newsletters.Scripts.Scraper;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Globalization;

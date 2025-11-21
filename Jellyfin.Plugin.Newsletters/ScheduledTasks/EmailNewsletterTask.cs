@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Plugin.Newsletters.Emails.EMAIL;
+using Jellyfin.Plugin.Newsletters.Emails.Email;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.Tasks;
@@ -36,7 +36,6 @@ namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
         {
             yield return new TaskTriggerInfo
             {
-                // Type = TaskTriggerInfo.TriggerInterval,
                 Type = TaskTriggerInfoType.IntervalTrigger,
                 IntervalTicks = TimeSpan.FromHours(168).Ticks
             };

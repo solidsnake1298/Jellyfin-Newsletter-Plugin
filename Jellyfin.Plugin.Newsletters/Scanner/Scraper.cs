@@ -11,10 +11,11 @@ using System.Threading.Tasks;
 using Jellyfin.Data.Enums;
 using Jellyfin.Database.Implementations.Entities.Libraries;
 using Jellyfin.Plugin.Newsletters.Configuration;
-using Jellyfin.Plugin.Newsletters.LOGGER;
+using Jellyfin.Plugin.Newsletters.NLPLogger;
 using Jellyfin.Plugin.Newsletters.Scanner.NLImageHandler;
-using Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
-using Jellyfin.Plugin.Newsletters.Shared.DATA;
+using Jellyfin.Plugin.Newsletters.Scripts.Entities;
+using Jellyfin.Plugin.Newsletters.Shared.Efcore;
+using Jellyfin.Plugin.Newsletters.Shared.Efcore.Migrations;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller;
@@ -23,13 +24,12 @@ using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TVEntity = MediaBrowser.Controller.Entities.TV;
 
-// using Microsoft.Extensions.Logging;
-
-namespace Jellyfin.Plugin.Newsletters.Scripts.SCRAPER;
+namespace Jellyfin.Plugin.Newsletters.Scripts.Scraper;
 
 public class Scraper
 {
@@ -43,7 +43,6 @@ public class Scraper
     private int totalLibCount;
     private int currCount;
     private PosterImageHandler imageHandler;
-    private SQLiteDatabase db;
     private JsonFileObj jsonHelper;
     private Logger logger;
     private IProgress<double> progress;
@@ -63,7 +62,6 @@ public class Scraper
         totalLibCount = currCount = 0;
 
         imageHandler = new PosterImageHandler();
-        db = new SQLiteDatabase();
 
         logger.Debug("Setting Config Paths: ");
         logger.Debug("\n  DataPath: " + config.DataPath +
@@ -82,7 +80,6 @@ public class Scraper
         logger.Info("Gathering Data...");
         try
         {
-            db.CreateConnection();
             BuildJsonObjsToCurrScanfile();
         }
         catch (Exception e)
@@ -92,7 +89,6 @@ public class Scraper
         finally
         {
             UpdatePreviousRunTimestamp();
-            db.CloseConnection();
         }
 
         return Task.CompletedTask;
@@ -103,17 +99,20 @@ public class Scraper
         // Retrieves time stamp of last successful scan, sets MinDateLastSaved
         // This avoids unnecessarily processing the entire library for each run
         DateTime minDate = DateTime.Now;
-        string lastRun = string.Empty;
-        foreach (var row in db.Query("SELECT LastRun from PreviousRun WHERE ID = 0;"))
+        using (var db = new NLPContext())
         {
-            if (row is not null)
+            string lastRun = string.Empty;
+            foreach (var row in db.PreviousRun.Where(p => p.ID == 0).Select(p => p.LastRun))
             {
-                lastRun = row[0].ToString();
-            }
+                if (row is not null)
+                {
+                    lastRun = row.ToString();
+                }
 
-            logger.Debug($"{lastRun}");
-            minDate = DateTime.Parse(lastRun, System.Globalization.CultureInfo.InvariantCulture).ToLocalTime();
-            logger.Debug($"{minDate}");
+                logger.Debug($"{lastRun}");
+                minDate = DateTime.Parse(lastRun, System.Globalization.CultureInfo.InvariantCulture).ToLocalTime();
+                logger.Debug($"{minDate}");
+            }
         }
 
         // Finds collection folders to then parse to build a string array to omit live TV recordings from BuildObjs parsing
@@ -283,21 +282,23 @@ public class Scraper
                     currFileObj = NoNull(currFileObj);
                     try
                     {
-                        db.ExecuteSQL(
-                            "INSERT INTO NewsletterData (Filename, Title, Album, Season, Episode, Overview, ItemID, PosterPath, Type, Emailed) " +
-                            "VALUES (" +
-                            SanitizeDbItem(currFileObj.Filename) +
-                            "," + SanitizeDbItem(currFileObj!.Title) +
-                            "," + SanitizeDbItem(currFileObj!.Album) +
-                            "," + ((currFileObj?.Season is null) ? -1 : currFileObj.Season) +
-                            "," + ((currFileObj?.Episode is null) ? -1 : currFileObj.Episode) +
-                            "," + SanitizeDbItem(currFileObj!.Overview) +
-                            "," + SanitizeDbItem(currFileObj.ItemID) +
-                            "," + SanitizeDbItem(currFileObj!.PosterPath) +
-                            "," + SanitizeDbItem(currFileObj.Type) +
-                            "," + ((currFileObj?.Emailed is null) ? 0 : currFileObj.Emailed) +
-                            ");");
-                        logger.Debug("Complete!");
+                        using (var db = new NLPContext())
+                        {
+                            var newFile = db.NewsletterData;
+                            newFile.Filename = SanitizeDbItem(currFileObj.Filename);
+                            newFile.Title = SanitizeDbItem(currFileObj!.Title);
+                            newFile.Album = SanitizeDbItem(currFileObj!.Album);
+                            newFile.Season = (currFileObj?.Season is null) ? -1 : currFileObj.Season;
+                            newFile.Episode = (currFileObj?.Episode is null) ? -1 : currFileObj.Episode;
+                            newFile.Overview = SanitizeDbItem(currFileObj!.Overview);
+                            newFile.ItemID = SanitizeDbItem(currFileObj.ItemID);
+                            newFile.PosterPath = SanitizeDbItem(currFileObj!.PosterPath);
+                            newFile.Type = SanitizeDbItem(currFileObj.Type);
+                            newFile.Emailed = (currFileObj?.Emailed is null) ? 0 : currFileObj.Emailed;
+                            db.NewsletterData.Add(newFile);
+                            db.SaveChangesAsync();
+                            logger.Debug("Complete!");
+                        }
                     }
                     catch
                     {
@@ -421,14 +422,17 @@ public class Scraper
 
     private bool InDatabase(string fileName)
     {
-        foreach (var row in db.Query("SELECT COUNT(*) FROM NewsletterData WHERE Filename=" + fileName + ";"))
+        using (var db = new NLPContext())
         {
-            if (row is not null)
+            foreach (var row in db.NewsletterData.Where(n => n.Filename == fileName))
             {
-                if (int.TryParse(row[0].ToString(), out var x) && x > 0)
+                if (row is not null)
                 {
-                    logger.Debug("NewsletterData Size: " + row[0].ToString());
-                    return true;
+                    if (int.TryParse(row[0].ToString(), out var x) && x > 0)
+                    {
+                        logger.Debug("NewsletterData Size: " + row[0].ToString());
+                        return true;
+                    }
                 }
             }
         }
@@ -438,7 +442,6 @@ public class Scraper
 
     private string SanitizeDbItem(string unsanitized_string)
     {
-        // string sanitize_string = string.Empty;
         if (unsanitized_string is null)
         {
             unsanitized_string = string.Empty;
@@ -450,6 +453,11 @@ public class Scraper
     private void UpdatePreviousRunTimestamp()
     {
         DateTime currDate = DateTime.UtcNow;
-        db.ExecuteSQL("UPDATE PreviousRun SET LastRun = '" + currDate + "' WHERE ID = 0;");
+        using (var db = new NLPContext())
+        {
+            var updatedTime = db.PreviousRun.Where(p => p.ID == 0);
+            updatedTime.LastRun = currDate;
+            db.SaveChangesAsync();
+        }
     }
 }

@@ -3,11 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using Jellyfin.Plugin.Newsletters.LOGGER;
+using Jellyfin.Plugin.Newsletters.NLPLogger;
 using SQLitePCL;
 using SQLitePCL.pretty;
 
-namespace Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
+namespace Jellyfin.Plugin.Newsletters.Scripts.Entities;
 
 public class JsonFileObj
 {

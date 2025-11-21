@@ -11,10 +11,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Newsletters.Configuration;
-using Jellyfin.Plugin.Newsletters.LOGGER;
-using Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
-using Jellyfin.Plugin.Newsletters.Scripts.SCRAPER;
-using Jellyfin.Plugin.Newsletters.Shared.DATA;
+using Jellyfin.Plugin.Newsletters.NLPLogger;
+using Jellyfin.Plugin.Newsletters.Scripts.Entities;
+using Jellyfin.Plugin.Newsletters.Scripts.Scraper;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller;
@@ -38,13 +37,11 @@ public class PosterImageHandler
     // Readonly
     private readonly PluginConfiguration config;
     private Logger logger;
-    private SQLiteDatabase db;
     private JsonFileObj jsonHelper;
 
     public PosterImageHandler()
     {
         logger = new Logger();
-        db = new SQLiteDatabase();
         config = Plugin.Instance!.Configuration;
         jsonHelper = new JsonFileObj();
     }
