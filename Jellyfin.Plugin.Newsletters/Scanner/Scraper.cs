@@ -399,6 +399,8 @@ public class Scraper
         currFileObj.PosterPath = artist.PrimaryImagePath;
         currFileObj.Emailed = 0;
 
+        currFileObj.PosterPath ??= album.PrimaryImagePath;
+
         logger.Debug($"Artist: {currFileObj.Title}");
         logger.Debug($"ImageInfo: {currFileObj.PosterPath}");
         logger.Debug($"Filepath: {currFileObj.Filename}");
