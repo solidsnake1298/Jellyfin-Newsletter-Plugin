@@ -1,3 +1,8 @@
+# 1.1.0.1
+- Fixed error regarding writing HTML file.  OBE, removed.
+- Added DB table check.  Only init when tables aren't present.
+- Ensured short lived DB connections.
+
 # 1.1.0.0
 - Code cleanup.
 - Adding tracker for "last successful run".
