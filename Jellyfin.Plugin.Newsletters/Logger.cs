@@ -30,7 +30,7 @@ public class Logger
         PluginConfiguration config = Plugin.Instance!.Configuration;
         if (config.DebugMode)
         {
-            Info(msg);
+            Inform(msg, "DEBUG");
         }
     }
 
