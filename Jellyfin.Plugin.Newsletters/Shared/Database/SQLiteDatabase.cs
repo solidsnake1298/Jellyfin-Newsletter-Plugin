@@ -31,12 +31,34 @@ public class SQLiteDatabase
 
         _ = raw.sqlite3_enable_shared_cache(1);
 
-        ThreadSafeMode = raw.sqlite3_threadsafe();
         dbFilePath = config.DataPath + "/newsletters.db"; // get directory from config
         dbLockPath = dbFilePath + ".lock";
     }
 
-    internal static int ThreadSafeMode { get; set; }
+    public void InitDatabase()
+    {
+        if (!File.Exists(dbLockPath)) // Database is not locked
+        {
+            CreateConnection();
+            if (CheckTables())
+            {
+                logger.Debug("Database not initialized.  Creating tables and migrating any existing or legacy data...");
+                CreateTables();
+                MigrateTables();
+                logger.Debug("Done Init of tables");
+            }
+            else
+            {
+                logger.Debug("Database already initialized...");
+            }
+
+            CloseConnection();
+        }
+        else
+        {
+            logger.Debug("Database lock file shows database is in use: " + dbLockPath);
+        }
+    }
 
     public void CreateConnection()
     {
@@ -45,7 +67,6 @@ public class SQLiteDatabase
             logger.Debug("Opening Database: " + dbFilePath);
             _db = SQLite3.Open(dbFilePath);
             File.WriteAllText(dbLockPath, string.Empty);
-            InitDatabase();
         }
         else
         {
@@ -53,12 +74,70 @@ public class SQLiteDatabase
         }
     }
 
-    private void InitDatabase()
+    private bool CheckTables()
     {
-       logger.Debug("Creating Tables...");
-       CreateTables();
-       MigrateTables();
-       logger.Debug("Done Init of tables");
+        List<string> nlpColumns = new List<string> { "Filename", "Title", "Album", "Season", "Episode", "Overview", "ItemID", "PosterPath", "Type", "Emailed" };
+        List<string> prColumns = new List<string> { "ID", "LastRun" };
+        foreach (var row in Query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='NewsletterData';"))
+        {
+            logger.Debug($"nlpPresent:: {row[0].ToString()}");
+            if (int.TryParse(row[0].ToString(), out var x) && x > 0)
+            {
+                foreach (var column in Query("SELECT name FROM pragma_table_info('NewsletterData');"))
+                {
+                    logger.Debug($"column:: {column[0]}");
+                    var isColumnPresent = nlpColumns.Contains(column[0]!.ToString());
+                    if (isColumnPresent)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        return true;
+                    }   
+                }
+            }
+            else if (x == 0)
+            {
+                return true;
+            }
+        }
+
+        foreach (var row in Query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='PreviousRun';"))
+        {
+            logger.Debug($"prPresent:: {row[0].ToString()}");
+            if (int.TryParse(row[0].ToString(), out var x) && x > 0)
+            {
+                foreach (var column in Query("SELECT name FROM pragma_table_info('PreviousRun');"))
+                {
+                    logger.Debug($"column:: {column[0]}");
+                    var isColumnPresent = prColumns.Contains(column[0]!.ToString());
+                    if (isColumnPresent)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        return true;
+                    }   
+                }
+            }
+            else if (x == 0)
+            {
+                return true;
+            }
+        }
+
+        foreach (var row in Query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND (name='ArchiveData' OR name='CurrRunData' OR name='CurrNewsletterData');"))
+        {
+            logger.Debug($"legacyPresent:: {row[0].ToString()}");
+            if (int.TryParse(row[0].ToString(), out var x) && x > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void CreateTables()

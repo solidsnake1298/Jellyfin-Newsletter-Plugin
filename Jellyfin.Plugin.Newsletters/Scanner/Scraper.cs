@@ -82,6 +82,7 @@ public class Scraper
         logger.Info("Gathering Data...");
         try
         {
+            db.InitDatabase();
             db.CreateConnection();
             BuildJsonObjsToCurrScanfile();
         }

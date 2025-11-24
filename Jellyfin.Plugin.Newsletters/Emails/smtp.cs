@@ -82,8 +82,6 @@ public class Smtp : ControllerBase
     {
         try
         {
-            db.CreateConnection();
-
             if (NewsletterDbIsPopulated())
             {
                 logger.Debug("Sending out mail!");
@@ -162,7 +160,7 @@ public class Smtp : ControllerBase
                 smtp.EnableSsl = enableSSL;
                 smtp.Send(mail);
 
-                hb.CleanUp(builtString);
+                hb.CleanUp();
                 // Attachment Image dir cleanup
                 System.IO.DirectoryInfo di = new DirectoryInfo($"{attachmentDir}");
                 foreach (FileInfo file in di.GetFiles())
@@ -186,12 +184,13 @@ public class Smtp : ControllerBase
         }
         finally
         {
-            db.CloseConnection();
+            logger.Debug("Finished sending email!!");
         }
     }
 
     private bool NewsletterDbIsPopulated()
     {
+        db.CreateConnection();
         foreach (var row in db.Query("SELECT COUNT(*) FROM NewsletterData WHERE Emailed = 0;"))
         {
             if (row is not null)

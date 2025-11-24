@@ -43,11 +43,6 @@ public class HtmlBuilder
     private ContentIdJson contentIdHelper;
     private List<string> contentIdList = new List<string>();
 
-    // Non-readonly
-    private static string append = "Append";
-    private static string write = "Overwrite";
-    // private List<string> fileList;
-
     public HtmlBuilder()
     {
         logger = new Logger();
@@ -71,8 +66,6 @@ public class HtmlBuilder
         {
             newsletterHTMLFile = newslettersDir + config.NewsletterFileName;
         }
-
-        logger.Info("Newsletter will be saved to: " + newsletterHTMLFile);
     }
 
     public string GetDefaultHTMLBody()
@@ -202,6 +195,7 @@ public class HtmlBuilder
         finally
         {
             db.CloseConnection();
+            logger.Debug("Finished building email!");
         }
 
         return builtHTMLString;
@@ -562,30 +556,11 @@ public class HtmlBuilder
         return body.Replace("{EntryData}", nlData, StringComparison.Ordinal);
     }
 
-    public void CleanUp(string htmlBody)
+    public void CleanUp()
     {
-        // save newsletter to file
-        logger.Info("Saving HTML file");
-        WriteFile(write, newsletterHTMLFile, htmlBody);
-
         // Updates Emailed column to 1
-        EmailedNewsletter();
-    }
-
-    private void EmailedNewsletter()
-    {
+        db.CreateConnection();
         db.ExecuteSQL("UPDATE NewsletterData SET Emailed = 1 WHERE Emailed = 0;");
-    }
-
-    private void WriteFile(string method, string path, string value)
-    {
-        if (method == append)
-        {
-            File.AppendAllText(path, value);
-        }
-        else if (method == write)
-        {
-            File.WriteAllText(path, value);
-        }
+        db.CloseConnection();
     }
 }
