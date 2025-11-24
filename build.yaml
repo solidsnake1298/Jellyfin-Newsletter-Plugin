@@ -2,7 +2,7 @@
 name: "Newsletters"
 guid: "60f478ab-2dd6-4ea0-af10-04d033f75979"
 imageUrl: "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png"
-version: "1.1.0.0"
+version: "1.1.0.1"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Send newsletters for recently added media"
@@ -13,7 +13,7 @@ artifacts:
   - "Jellyfin.Plugin.Newsletters.dll"
   - "SQLitePCL.pretty.dll"
 changelog: >
-  - Code cleanup.
-  - Adding tracker for "last successful run".
-  - Use tracker to set MinLastDateSaved in calls to Jellyfin library manager to only retrieve new library items.
-  FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md
+  - Fixed error regarding writing HTML file.  OBE, removed.
+  - Added DB table check.  Only init when tables aren't present.
+  - Ensured short lived DB connections.
+FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md
