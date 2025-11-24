@@ -10,7 +10,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Newsletters.Configuration;
-using Jellyfin.Plugin.Newsletters.LOGGER;
+using Jellyfin.Plugin.Newsletters.NLPLogger;
 using Jellyfin.Plugin.Newsletters.Scanner.NLImageHandler;
 using Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
 using Jellyfin.Plugin.Newsletters.Scripts.SCRAPER;
@@ -34,11 +34,10 @@ public class HtmlBuilder
     private readonly PluginConfiguration config;
     private readonly string newslettersDir;
     private readonly string newsletterHTMLFile;
-    // private readonly string[] itemJsonKeys = 
 
     private string emailBody;
     private Logger logger;
-    private SQLiteDatabase db;
+    private SqlLiteDatabase db;
     private JsonFileObj jsonHelper;
     private ContentIdJson contentIdHelper;
     private List<string> contentIdList = new List<string>();
@@ -48,11 +47,11 @@ public class HtmlBuilder
         logger = new Logger();
         jsonHelper = new JsonFileObj();
         contentIdHelper = new ContentIdJson();
-        db = new SQLiteDatabase();
+        db = new SqlLiteDatabase();
         config = Plugin.Instance!.Configuration;
         emailBody = config.Body;
 
-        newslettersDir = config.NewsletterDir; // newsletterdir
+        newslettersDir = config.NewsletterDir;
         Directory.CreateDirectory(newslettersDir);
 
         // if no newsletter filename is saved or the file doesn't exist
@@ -66,12 +65,6 @@ public class HtmlBuilder
         {
             newsletterHTMLFile = newslettersDir + config.NewsletterFileName;
         }
-    }
-
-    public string GetDefaultHTMLBody()
-    {
-        emailBody = config.Body;
-        return emailBody;
     }
 
     public string TemplateReplace(string htmlObj, string replaceKey, object replaceValue, bool finalPass = false)
@@ -128,7 +121,7 @@ public class HtmlBuilder
                         seaEpsHtml += GetSeasonEpisodeHTML(parsedInfoList);
                     }
 
-                    var tmp_entry = config.Entry;
+                    var tmpEntry = config.Entry;
 
                     contentID.PosterPath = item.PosterPath;
                     contentID.ItemID = item.ItemID;
@@ -137,11 +130,11 @@ public class HtmlBuilder
                     {
                         if (ele.Value is not null)
                         {
-                            tmp_entry = this.TemplateReplace(tmp_entry, ele.Key, ele.Value);
+                            tmpEntry = this.TemplateReplace(tmpEntry, ele.Key, ele.Value);
                         }
                     }
 
-                    builtHTMLString += tmp_entry.Replace("{TitleInfo}", seaEpsHtml, StringComparison.Ordinal)
+                    builtHTMLString += tmpEntry.Replace("{TitleInfo}", seaEpsHtml, StringComparison.Ordinal)
                                                 .Replace("{ImageURL}", "cid:<" + item.ItemID + ">", StringComparison.Ordinal);
 
                     contentIdList.Add(JsonConvert.SerializeObject(contentID));
@@ -167,7 +160,7 @@ public class HtmlBuilder
                         albumsHtml += GetSeasonEpisodeHTML(parsedInfoList);
                     }
 
-                    var tmp_entry = config.Entry;
+                    var tmpEntry = config.Entry;
                     
                     contentID.PosterPath = item.PosterPath;
                     contentID.ItemID = item.ItemID;
@@ -176,11 +169,11 @@ public class HtmlBuilder
                     {
                         if (ele.Value is not null)
                         {
-                            tmp_entry = this.TemplateReplace(tmp_entry, ele.Key, ele.Value);
+                            tmpEntry = this.TemplateReplace(tmpEntry, ele.Key, ele.Value);
                         }
                     }
 
-                    builtHTMLString += tmp_entry.Replace("{TitleInfo}", albumsHtml, StringComparison.Ordinal)
+                    builtHTMLString += tmpEntry.Replace("{TitleInfo}", albumsHtml, StringComparison.Ordinal)
                                                 .Replace("{ImageURL}", "cid:<" + item.ItemID + ">", StringComparison.Ordinal);
                     
                     contentIdList.Add(JsonConvert.SerializeObject(contentID));
@@ -487,7 +480,6 @@ public class HtmlBuilder
         NlDetailsJson currAlbumDetailsObj = new NlDetailsJson();
 
         // Parses album list
-        string currAlbum;
         int list_len = compiledList.Count;
         int count = 1;
         foreach (NlDetailsJson item in compiledList)
@@ -508,7 +500,7 @@ public class HtmlBuilder
             // Inserts album attributes from current loop into JSON object
             void AddNewAlbum()
             {
-                currAlbumDetailsObj.Album = currAlbum = item.Album;
+                currAlbumDetailsObj.Album = item.Album;
                 currAlbumDetailsObj.Type = item.Type;
                 finalList.Add(CopyJsonFromExisting(currAlbumDetailsObj));
             }
@@ -560,7 +552,7 @@ public class HtmlBuilder
     {
         // Updates Emailed column to 1
         db.CreateConnection();
-        db.ExecuteSQL("UPDATE NewsletterData SET Emailed = 1 WHERE Emailed = 0;");
+        db.ExecuteSql("UPDATE NewsletterData SET Emailed = 1 WHERE Emailed = 0;");
         db.CloseConnection();
     }
 }

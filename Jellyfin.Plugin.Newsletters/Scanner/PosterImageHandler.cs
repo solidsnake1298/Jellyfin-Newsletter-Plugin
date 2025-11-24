@@ -10,45 +10,16 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Plugin.Newsletters.Configuration;
-using Jellyfin.Plugin.Newsletters.LOGGER;
-using Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
-using Jellyfin.Plugin.Newsletters.Scripts.SCRAPER;
-using Jellyfin.Plugin.Newsletters.Shared.DATA;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Plugins;
-using MediaBrowser.Controller;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Model.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SkiaSharp;
-
-// using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Newsletters.Scanner.NLImageHandler;
 
-public class PosterImageHandler
+public static class PosterImageHandler
 {
     // Global Vars
     private const string DefaultMimeType = "application/octet-stream";
     private const SKEncodedImageFormat DefaultImageFormat = SKEncodedImageFormat.Png;
     
-    // Readonly
-    private readonly PluginConfiguration config;
-    private Logger logger;
-    private SQLiteDatabase db;
-    private JsonFileObj jsonHelper;
-
-    public PosterImageHandler()
-    {
-        logger = new Logger();
-        db = new SQLiteDatabase();
-        config = Plugin.Instance!.Configuration;
-        jsonHelper = new JsonFileObj();
-    }
-
     public static Stream ResizeImage(string imgPath)
     {
         var streamImage = SKImage.FromEncodedData(imgPath);

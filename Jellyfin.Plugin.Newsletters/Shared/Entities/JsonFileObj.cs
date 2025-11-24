@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using Jellyfin.Plugin.Newsletters.LOGGER;
 using SQLitePCL;
 using SQLitePCL.pretty;
 
@@ -11,8 +10,6 @@ namespace Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
 
 public class JsonFileObj
 {
-    private Logger? logger;
-    
     /// <summary>
     /// Initializes a new instance of the <see cref="JsonFileObj"/> class.
     /// </summary>
@@ -52,7 +49,6 @@ public class JsonFileObj
 
     public JsonFileObj ConvertToObj(IReadOnlyList<ResultSetValue> row)
     {
-        logger = new Logger();
         JsonFileObj obj = new JsonFileObj()
         {
             Filename = row[0].ToString(),
@@ -72,18 +68,18 @@ public class JsonFileObj
 
     public Dictionary<string, object?> GetReplaceDict()
     {
-        Dictionary<string, object?> item_dict = new Dictionary<string, object?>();
-        item_dict.Add("{Filename}", this.Filename);
-        item_dict.Add("{Title}", this.Title);
-        item_dict.Add("{Album}", this.Album);
-        item_dict.Add("{Season}", this.Season);
-        item_dict.Add("{Episode}", this.Episode);
-        item_dict.Add("{Overview}", this.Overview);
-        item_dict.Add("{ItemID}", this.ItemID);
-        item_dict.Add("{PosterPath}", this.PosterPath);
-        item_dict.Add("{Type}", this.Type);
-        item_dict.Add("{ImageURL}", "cid:" + this.ItemID);
+        Dictionary<string, object?> itemDict = new Dictionary<string, object?>();
+        itemDict.Add("{Filename}", this.Filename);
+        itemDict.Add("{Title}", this.Title);
+        itemDict.Add("{Album}", this.Album);
+        itemDict.Add("{Season}", this.Season);
+        itemDict.Add("{Episode}", this.Episode);
+        itemDict.Add("{Overview}", this.Overview);
+        itemDict.Add("{ItemID}", this.ItemID);
+        itemDict.Add("{PosterPath}", this.PosterPath);
+        itemDict.Add("{Type}", this.Type);
+        itemDict.Add("{ImageURL}", "cid:" + this.ItemID);
 
-        return item_dict;        
+        return itemDict;        
     }
 }

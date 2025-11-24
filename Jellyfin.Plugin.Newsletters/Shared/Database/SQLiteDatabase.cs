@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Jellyfin.Plugin.Newsletters.Configuration;
-using Jellyfin.Plugin.Newsletters.LOGGER;
+using Jellyfin.Plugin.Newsletters.NLPLogger;
 using Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
 using MediaBrowser.Common.Configuration;
 using SQLitePCL;
@@ -11,7 +11,7 @@ using SQLitePCL.pretty;
 
 namespace Jellyfin.Plugin.Newsletters.Shared.DATA;
 
-public class SQLiteDatabase
+public class SqlLiteDatabase
 {
     private readonly PluginConfiguration config;
     private string dbFilePath;
@@ -19,7 +19,7 @@ public class SQLiteDatabase
     private Logger logger;
     private SQLiteDatabaseConnection? _db;
 
-    public SQLiteDatabase()
+    public SqlLiteDatabase()
     {
         logger = new Logger();
         config = Plugin.Instance!.Configuration;
@@ -142,7 +142,7 @@ public class SQLiteDatabase
 
     private void CreateTables()
     {
-        ExecuteSQL("CREATE TABLE IF NOT EXISTS NewsletterData (" +
+        ExecuteSql("CREATE TABLE IF NOT EXISTS NewsletterData (" +
                 "Filename TEXT NOT NULL," +
                 "Title TEXT," +
                 "Album TEXT," +
@@ -154,11 +154,11 @@ public class SQLiteDatabase
                 "Type TEXT," +
                 "Emailed INT," +
                 "PRIMARY KEY (Filename));");
-        ExecuteSQL("CREATE TABLE IF NOT EXISTS PreviousRun (" +
+        ExecuteSql("CREATE TABLE IF NOT EXISTS PreviousRun (" +
                 "ID INTEGER NOT NULL," +
                 "LastRun TEXT," +
                 "PRIMARY KEY (ID));");
-        ExecuteSQL("CREATE TRIGGER IF NOT EXISTS PreviousRunNoInsert " + 
+        ExecuteSql("CREATE TRIGGER IF NOT EXISTS PreviousRunNoInsert " + 
                 "BEFORE INSERT ON PreviousRun " +
                 "WHEN (SELECT COUNT(*) FROM PreviousRun) >= 1 " +
                 "BEGIN " +
@@ -167,7 +167,7 @@ public class SQLiteDatabase
         // Initalizes table with default value.  Skips if row is already present.
         try
         {
-            ExecuteSQL("INSERT OR IGNORE INTO PreviousRun (" +
+            ExecuteSql("INSERT OR IGNORE INTO PreviousRun (" +
                 "ID,LastRun) " +
                 "VALUES (0,'12/30/2018 00:00:00 AM');");
         }
@@ -181,7 +181,7 @@ public class SQLiteDatabase
     {
         try
         {
-            ExecuteSQL("INSERT INTO NewsletterData (" +
+            ExecuteSql("INSERT INTO NewsletterData (" +
                             "Filename," +
                             "Title," +
                             "Season," +
@@ -200,9 +200,9 @@ public class SQLiteDatabase
                             "PosterPath," +
                             "Type " +
                             "FROM ArchiveData;");
-            ExecuteSQL("DROP TABLE IF EXISTS CurrRunData");
-            ExecuteSQL("DROP TABLE IF EXISTS CurrNewsletterData");
-            ExecuteSQL("DROP TABLE IF EXISTS ArchiveData");
+            ExecuteSql("DROP TABLE IF EXISTS CurrRunData");
+            ExecuteSql("DROP TABLE IF EXISTS CurrNewsletterData");
+            ExecuteSql("DROP TABLE IF EXISTS ArchiveData");
             logger.Debug("Legacy tables successfully migrated.");
         }
         catch
@@ -217,7 +217,7 @@ public class SQLiteDatabase
         return _db.Query(query);
     }
 
-    public void ExecuteSQL(string query)
+    public void ExecuteSql(string query)
     {
         logger.Debug("Executing SQL Statement: " + query);
         _db.Execute(query);

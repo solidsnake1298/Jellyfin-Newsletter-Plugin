@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using Jellyfin.Plugin.Newsletters.LOGGER;
 using SQLitePCL;
 using SQLitePCL.pretty;
 
@@ -11,8 +10,6 @@ namespace Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
 
 public class ContentIdJson
 {
-    private Logger? logger;
-
     public ContentIdJson()
     {
         ItemID = string.Empty;
@@ -25,8 +22,6 @@ public class ContentIdJson
 
     public ContentIdJson ConvertToObj(IReadOnlyList<ResultSetValue> row)
     {
-        logger = new Logger();
-        logger = new Logger();
         ContentIdJson obj = new ContentIdJson()
         {
             ItemID = row[0].ToString(),
@@ -38,9 +33,9 @@ public class ContentIdJson
 
     public Dictionary<string, object?> GetReplaceDict()
     {
-        Dictionary<string, object?> item_dict = new Dictionary<string, object?>();
-        item_dict.Add("{ItemID}", this.ItemID);
+        Dictionary<string, object?> itemDict = new Dictionary<string, object?>();
+        itemDict.Add("{ItemID}", this.ItemID);
 
-        return item_dict;        
+        return itemDict;        
     }
 }
