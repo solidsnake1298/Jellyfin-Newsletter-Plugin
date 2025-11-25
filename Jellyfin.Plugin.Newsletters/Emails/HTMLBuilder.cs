@@ -15,7 +15,7 @@ public class HtmlBuilder
     // Readonly
     private readonly PluginConfiguration config;
     private readonly Logger logger;
-    private readonly SqlLiteDatabase db;
+    private readonly SqLiteDatabase db;
     private readonly JsonFileObj jsonHelper;
     private readonly List<string> contentIdList = new();
     // Non-readonly
@@ -25,7 +25,7 @@ public class HtmlBuilder
     {
         logger = new Logger();
         jsonHelper = new JsonFileObj();
-        db = new SqlLiteDatabase();
+        db = new SqLiteDatabase();
         config = Plugin.Instance!.Configuration;
         emailBody = config.Body;
     }

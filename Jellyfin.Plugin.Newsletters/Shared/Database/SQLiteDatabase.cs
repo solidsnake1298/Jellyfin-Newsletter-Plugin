@@ -6,14 +6,14 @@ using SQLitePCL.pretty;
 
 namespace Jellyfin.Plugin.Newsletters.Shared.Database;
 
-public class SqlLiteDatabase
+public class SqLiteDatabase
 {
     private readonly string dbFilePath;
     private readonly string dbLockPath;
     private readonly Logger logger;
     private SQLiteDatabaseConnection? db;
 
-    public SqlLiteDatabase()
+    public SqLiteDatabase()
     {
         logger = new Logger();
         var config = Plugin.Instance!.Configuration;
@@ -36,10 +36,10 @@ public class SqlLiteDatabase
             CreateConnection();
             if (CheckTables())
             {
-                logger.Debug("Database not initialized.  Creating tables and migrating any existing or legacy data...");
+                logger.Info("Database not initialized.  Creating tables and migrating any existing or legacy data...");
                 CreateTables();
                 MigrateTables();
-                logger.Debug("Done Init of tables");
+                logger.Info("Done database init...");
             }
             else
             {
@@ -50,7 +50,7 @@ public class SqlLiteDatabase
         }
         else
         {
-            logger.Debug("Database lock file shows database is in use: " + dbLockPath);
+            logger.Error("Database lock file shows database is in use: " + dbLockPath);
         }
     }
 
@@ -58,13 +58,14 @@ public class SqlLiteDatabase
     {
         if (!File.Exists(dbLockPath)) // Database is not locked
         {
+            logger.Info("Opening database connection...");
             logger.Debug("Opening Database: " + dbFilePath);
             db = SQLite3.Open(dbFilePath);
             File.WriteAllText(dbLockPath, string.Empty);
         }
         else
         {
-            logger.Debug("Database lock file shows database is in use: " + dbLockPath);
+            logger.Error("Database lock file shows database is in use: " + dbLockPath);
         }
     }
 
@@ -223,6 +224,7 @@ public class SqlLiteDatabase
     {
         if (File.Exists(dbLockPath)) // Database is locked
         {
+            logger.Info("Closing DB Connection");
             logger.Debug("Disposing DB connection: " + dbFilePath);
             db!.Dispose();
             logger.Debug("Removing database lock file: " + dbLockPath);

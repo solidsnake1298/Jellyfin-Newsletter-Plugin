@@ -23,7 +23,7 @@ public class Scraper
     private readonly PluginConfiguration config;
     private readonly ILibraryManager libManager;
     private readonly IRecordingsManager recManager;
-    private readonly SqlLiteDatabase db;
+    private readonly SqLiteDatabase db;
     private readonly Logger logger;
     private readonly IProgress<double> progress;
 
@@ -43,7 +43,7 @@ public class Scraper
 
         totalLibCount = currCount = 0;
 
-        db = new SqlLiteDatabase();
+        db = new SqLiteDatabase();
 
         logger.Debug("Setting Config Paths: ");
         logger.Debug("\n  DataPath: " + config.DataPath +
@@ -64,7 +64,7 @@ public class Scraper
         {
             db.InitDatabase();
             db.CreateConnection();
-            BuildJsonObjsToCurrScanfile();
+            BuildJsonObjsToCurrScanFile();
         }
         catch (Exception e)
         {
@@ -74,12 +74,13 @@ public class Scraper
         {
             UpdatePreviousRunTimestamp();
             db.CloseConnection();
+            logger.Info("Completed scanning for new items.");
         }
 
         return Task.CompletedTask;
     }
 
-    private void BuildJsonObjsToCurrScanfile()
+    private void BuildJsonObjsToCurrScanFile()
     {
         // Retrieves time stamp of last successful scan, sets MinDateLastSaved
         // This avoids unnecessarily processing the entire library for each run
@@ -186,9 +187,6 @@ public class Scraper
                 var currFileObj = new JsonFileObj();
                 try
                 {
-                    logger.Debug($"LocationType: " + item.LocationType);
-                    logger.Debug($"LocationType: " + item.Path);
-                    
                     if (item.LocationType.ToString() == "Virtual")
                     {
                         logger.Debug($"No physical path.. Skipping...");
@@ -202,6 +200,9 @@ public class Scraper
                             logger.Debug($"Found Series");
                             BaseItem season = item.FindParent<TVEntity.Season>();
                             BaseItem series = item.FindParent<TVEntity.Series>();
+                            // TODO: Find season BaseItem when all episodes are in series folder,
+                            // which causes the Season BaseItem to be null.  There is a FindSeasonId
+                            // method in the Episode entity for this situation.
                             if (series is null || season is null)
                             {
                                 logger.Debug($"Season or Series is null, skipping...");

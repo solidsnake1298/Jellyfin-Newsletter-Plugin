@@ -27,12 +27,12 @@ public class Smtp : ControllerBase
 {
     private readonly PluginConfiguration config;
     // private readonly string newsletterDataFile;
-    private readonly SqlLiteDatabase db;
+    private readonly SqLiteDatabase db;
     private readonly Logger logger;
 
     public Smtp()
     {
-        db = new SqlLiteDatabase();
+        db = new SqLiteDatabase();
         logger = new Logger();
         config = Plugin.Instance!.Configuration;
     }
@@ -141,6 +141,8 @@ public class Smtp : ControllerBase
                 smtp.EnableSsl = true;
                 smtp.Send(mail);
 
+                logger.Info("Successfully sent email.");
+
                 hb.CleanUp();
                 // Attachment Image dir cleanup
                 var di = new DirectoryInfo($"{attachmentDir}");
@@ -166,7 +168,7 @@ public class Smtp : ControllerBase
         }
         finally
         {
-            logger.Info("Successfully sent email.");
+            logger.Debug("Successfully completed job.");
         }
     }
 
