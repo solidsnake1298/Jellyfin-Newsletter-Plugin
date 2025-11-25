@@ -6,6 +6,7 @@
 - Apply best practices.
 - Remove duplicate null checks.
 - Improve logging.
+- Changed skia sampling options for improved resize image quality.
 
 # 1.1.0.1
 - Fixed error regarding writing HTML file.  OBE, removed.
