@@ -13,8 +13,8 @@
                 "changelog": "- Code cleanup, apply best practices, remove duplicate null checks, improve logging.\n",
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v1.1.0.2/newsletters_1.1.0.2.zip",
-                "checksum": "ce5f642353add287a48c0098cc1bce5f",
-                "timestamp": "2025-11-25T19:08:26Z"
+                "checksum": "5378c2b4473e043b918af19c376081a6",
+                "timestamp": "2025-11-25T20:06:21Z"
             },
             {
                 "version": "1.1.0.1",
