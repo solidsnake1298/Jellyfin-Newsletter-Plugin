@@ -1,12 +1,9 @@
 #pragma warning disable 1591
-using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using SQLitePCL;
 using SQLitePCL.pretty;
 
-namespace Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
+namespace Jellyfin.Plugin.Newsletters.Shared.Entities;
 
 public class JsonFileObj
 {
@@ -21,7 +18,7 @@ public class JsonFileObj
         Season = 0;
         Episode = 0;
         Overview = string.Empty;
-        ItemID = string.Empty;
+        ItemId = string.Empty;
         PosterPath = string.Empty;
         Type = string.Empty;
         Emailed = 0;
@@ -39,7 +36,7 @@ public class JsonFileObj
 
     public string Overview { get; set; }
 
-    public string ItemID { get; set; }
+    public string ItemId { get; set; }
 
     public string PosterPath { get; set; }
 
@@ -49,7 +46,7 @@ public class JsonFileObj
 
     public JsonFileObj ConvertToObj(IReadOnlyList<ResultSetValue> row)
     {
-        JsonFileObj obj = new JsonFileObj()
+        var obj = new JsonFileObj()
         {
             Filename = row[0].ToString(),
             Title = row[1].ToString(),
@@ -57,7 +54,7 @@ public class JsonFileObj
             Season = int.Parse(row[3].ToString(), CultureInfo.CurrentCulture),
             Episode = int.Parse(row[4].ToString(), CultureInfo.CurrentCulture),
             Overview = row[5].ToString(),
-            ItemID = row[6].ToString(),
+            ItemId = row[6].ToString(),
             PosterPath = row[7].ToString(),
             Type = row[8].ToString(),
             Emailed = int.Parse(row[9].ToString(), CultureInfo.CurrentCulture)
@@ -68,17 +65,19 @@ public class JsonFileObj
 
     public Dictionary<string, object?> GetReplaceDict()
     {
-        Dictionary<string, object?> itemDict = new Dictionary<string, object?>();
-        itemDict.Add("{Filename}", this.Filename);
-        itemDict.Add("{Title}", this.Title);
-        itemDict.Add("{Album}", this.Album);
-        itemDict.Add("{Season}", this.Season);
-        itemDict.Add("{Episode}", this.Episode);
-        itemDict.Add("{Overview}", this.Overview);
-        itemDict.Add("{ItemID}", this.ItemID);
-        itemDict.Add("{PosterPath}", this.PosterPath);
-        itemDict.Add("{Type}", this.Type);
-        itemDict.Add("{ImageURL}", "cid:" + this.ItemID);
+        Dictionary<string, object?> itemDict = new Dictionary<string, object?>
+        {
+            { "{Filename}", Filename },
+            { "{Title}", Title },
+            { "{Album}", Album },
+            { "{Season}", Season },
+            { "{Episode}", Episode },
+            { "{Overview}", Overview },
+            { "{ItemID}", ItemId },
+            { "{PosterPath}", PosterPath },
+            { "{Type}", Type },
+            { "{ImageURL}", "cid:" + ItemId }
+        };
 
         return itemDict;        
     }

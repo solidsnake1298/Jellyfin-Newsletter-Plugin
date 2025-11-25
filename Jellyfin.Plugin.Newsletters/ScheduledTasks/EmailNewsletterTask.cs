@@ -1,12 +1,9 @@
 #pragma warning disable CS1591
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Plugin.Newsletters.Emails.EMAIL;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Model.Globalization;
+using Jellyfin.Plugin.Newsletters.Emails;
 using MediaBrowser.Model.Tasks;
 
 namespace Jellyfin.Plugin.Newsletters.ScheduledTasks

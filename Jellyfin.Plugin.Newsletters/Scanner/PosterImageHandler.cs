@@ -1,68 +1,47 @@
 #pragma warning disable 1591, SYSLIB0014, CA1002, CS0162
 using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Globalization;
 using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using SkiaSharp;
 
-namespace Jellyfin.Plugin.Newsletters.Scanner.NLImageHandler;
+namespace Jellyfin.Plugin.Newsletters.Scanner;
 
 public static class PosterImageHandler
 {
     // Global Vars
-    private const string DefaultMimeType = "application/octet-stream";
     private const SKEncodedImageFormat DefaultImageFormat = SKEncodedImageFormat.Png;
     
     public static Stream ResizeImage(string imgPath)
     {
         var streamImage = SKImage.FromEncodedData(imgPath);
-        using (var skImage = SKBitmap.FromImage(streamImage))
-        {
-            string extension = Path.GetExtension(imgPath);
-            int width = skImage.Width;
+        using var skImage = SKBitmap.FromImage(streamImage);
+        var extension = Path.GetExtension(imgPath);
+        var width = skImage.Width;
 
-            // Creates scale factor for height to maintain aspect ratio for 200px width
-            double scaleFactor = 200.0 / width;
+        // Creates scale factor for height to maintain aspect ratio for 200px width
+        var scaleFactor = 200.0 / width;
             
-            int newHeight = (int)(skImage.Height * scaleFactor);
-            // if scaleFactor is 1, skip resizing
-            if (scaleFactor is 1)
-            {
-                using (var image = SKImage.FromBitmap(skImage))
-                {
-                    using (var encodedImage = image.Encode(GetSkiaSharpImageFormatFromExtension(extension), 50))
-                    {
-                        var stream = new MemoryStream();
-                        encodedImage.SaveTo(stream);
-                        stream.Seek(0, SeekOrigin.Begin);
-                        return stream;
-                    }
-                }
-            }
-            else
-            {
-                SKSamplingOptions samplingOptions = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
-                using (var scaledBitmap = skImage.Resize(new SKSizeI(200, newHeight), samplingOptions))
-                {
-                    using (var image = SKImage.FromBitmap(scaledBitmap))
-                    {
-                        using (var encodedImage = image.Encode(GetSkiaSharpImageFormatFromExtension(extension), 50))
-                        {
-                            var stream = new MemoryStream();
-                            encodedImage.SaveTo(stream);
-                            stream.Seek(0, SeekOrigin.Begin);
-                            return stream;
-                        }
-                    }
-                }
-            }
+        var newHeight = (int)(skImage.Height * scaleFactor);
+        // if scaleFactor is 1, skip resizing
+        if (scaleFactor is 1)
+        {
+            using var image = SKImage.FromBitmap(skImage);
+            using var encodedImage = image.Encode(GetSkiaSharpImageFormatFromExtension(extension), 50);
+            var stream = new MemoryStream();
+            encodedImage.SaveTo(stream);
+            stream.Seek(0, SeekOrigin.Begin);
+            return stream;
+        }
+        else
+        {
+            var samplingOptions = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
+            using var scaledBitmap = skImage.Resize(new SKSizeI(200, newHeight), samplingOptions);
+            using var image = SKImage.FromBitmap(scaledBitmap);
+            using var encodedImage = image.Encode(GetSkiaSharpImageFormatFromExtension(extension), 50);
+            var stream = new MemoryStream();
+            encodedImage.SaveTo(stream);
+            stream.Seek(0, SeekOrigin.Begin);
+            return stream;
         }
     }
 
@@ -77,28 +56,11 @@ public static class PosterImageHandler
         canvas.DrawRect(square, paint);
         var streamImage = surface.Snapshot();
 
-        using (var encodedImage = streamImage.Encode(GetSkiaSharpImageFormatFromExtension(".png"), 50))
-        {
-            var stream = new MemoryStream();
-            encodedImage.SaveTo(stream);
-            stream.Seek(0, SeekOrigin.Begin);
-            return stream;
-        }
-    }
-
-    public static string GetMimeTypeFromExtension(string extension)
-    {
-        ArgumentNullException.ThrowIfNull(extension);
-
-        Dictionary<string, string> mimeTypeMapping = new Dictionary<string, string>
-        {
-            { ".jpe", "image/jpeg" },
-            { ".jpeg", "image/jpeg" },
-            { ".jpg", "image/jpeg" },
-            { ".png", "image/png" }
-        };
-
-        return mimeTypeMapping.TryGetValue(extension, out string? mimeType) ? mimeType : DefaultMimeType;
+        using var encodedImage = streamImage.Encode(GetSkiaSharpImageFormatFromExtension(".png"), 50);
+        var stream = new MemoryStream();
+        encodedImage.SaveTo(stream);
+        stream.Seek(0, SeekOrigin.Begin);
+        return stream;
     }
 
     private static SKEncodedImageFormat GetSkiaSharpImageFormatFromExtension(string extension)
@@ -113,6 +75,6 @@ public static class PosterImageHandler
             { ".jpe", SKEncodedImageFormat.Jpeg }
         };
 
-        return skiaSharpImageFormatMapping.TryGetValue(extension, out SKEncodedImageFormat imageFormat) ? imageFormat : DefaultImageFormat;
+        return skiaSharpImageFormatMapping.GetValueOrDefault(extension, DefaultImageFormat);
     }
 }

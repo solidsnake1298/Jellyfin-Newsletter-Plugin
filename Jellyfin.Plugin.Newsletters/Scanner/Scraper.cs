@@ -1,35 +1,20 @@
 #pragma warning disable 1591, CA1002, SA1005 // remove SA1005 to clean code
 using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Data.Enums;
-using Jellyfin.Database.Implementations.Entities.Libraries;
 using Jellyfin.Plugin.Newsletters.Configuration;
-using Jellyfin.Plugin.Newsletters.NLPLogger;
-using Jellyfin.Plugin.Newsletters.Scanner.NLImageHandler;
-using Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
-using Jellyfin.Plugin.Newsletters.Shared.DATA;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Plugins;
-using MediaBrowser.Controller;
+using Jellyfin.Plugin.Newsletters.Shared.Database;
+using Jellyfin.Plugin.Newsletters.Shared.Entities;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
-using MediaBrowser.Model.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using TVEntity = MediaBrowser.Controller.Entities.TV;
 
-// using Microsoft.Extensions.Logging;
-
-namespace Jellyfin.Plugin.Newsletters.Scripts.SCRAPER;
+namespace Jellyfin.Plugin.Newsletters.Scanner;
 
 public class Scraper
 {
@@ -38,23 +23,20 @@ public class Scraper
     private readonly PluginConfiguration config;
     private readonly ILibraryManager libManager;
     private readonly IRecordingsManager recManager;
+    private readonly SqlLiteDatabase db;
+    private readonly Logger logger;
+    private readonly IProgress<double> progress;
 
     // Non-readonly
     private int totalLibCount;
     private int currCount;
-    private SqlLiteDatabase db;
-    private JsonFileObj jsonHelper;
-    private Logger logger;
-    private IProgress<double> progress;
-    private CancellationToken cancelToken;
-    private string[] liveTvRootPaths = Array.Empty<string>();
+    private string[] liveTvRootPaths = 
+        [];
 
-    public Scraper(ILibraryManager libraryManager, IRecordingsManager recordingManager, IProgress<double> passedProgress, CancellationToken cancellationToken)
+    public Scraper(ILibraryManager libraryManager, IRecordingsManager recordingManager, IProgress<double> passedProgress)
     {
         logger = new Logger();
-        jsonHelper = new JsonFileObj();
         progress = passedProgress;
-        cancelToken = cancellationToken;
         config = Plugin.Instance!.Configuration;
         libManager = libraryManager;
         recManager = recordingManager;
@@ -102,10 +84,9 @@ public class Scraper
         // Retrieves time stamp of last successful scan, sets MinDateLastSaved
         // This avoids unnecessarily processing the entire library for each run
         var minDate = DateTime.Now;
-        var lastRun = string.Empty;
         foreach (var row in db.Query("SELECT LastRun from PreviousRun WHERE ID = 0;"))
         {
-            lastRun = row[0].ToString();
+            var lastRun = row[0].ToString();
             logger.Debug($"lastRun (local time):: {lastRun}");
             minDate = DateTime.Parse(lastRun, System.Globalization.CultureInfo.InvariantCulture).ToLocalTime();
             logger.Debug($"minDate (UTC):: {minDate}");
@@ -114,7 +95,7 @@ public class Scraper
         // Finds collection folders to then parse to build a string array to omit live TV recordings from BuildObjs parsing
         var recordingRootPaths = recManager.GetRecordingFolders();
         var recordingRootArray = recordingRootPaths.SelectMany(e => e.Locations).ToArray();
-        List<string> recordingRootList = new List<string>();
+        var recordingRootList = new List<string>();
         foreach (var recPath in recordingRootArray)
         {
             logger.Debug($"Recording Path:: {recPath}");
@@ -123,7 +104,7 @@ public class Scraper
 
         liveTvRootPaths = recordingRootList.ToArray();
 
-        if (!config.SeriesEnabled && !config.MoviesEnabled && !config.MusicEnabled)
+        if (config is { SeriesEnabled: false, MoviesEnabled: false, MusicEnabled: false })
         {
             logger.Info("No Libraries Enabled In Config!");
         }
@@ -132,7 +113,8 @@ public class Scraper
         {
             var series = new InternalItemsQuery()
             {
-                IncludeItemTypes = new[] { BaseItemKind.Episode },
+                IncludeItemTypes = 
+                    [BaseItemKind.Episode],
                 MinDateLastSaved = minDate
             };
             BuildObjs(libManager.GetItemList(series).ToList(), "Series"); // populate series
@@ -142,7 +124,8 @@ public class Scraper
         {
             var movie = new InternalItemsQuery()
             {
-                IncludeItemTypes = new[] { BaseItemKind.Movie },
+                IncludeItemTypes = 
+                    [BaseItemKind.Movie],
                 MinDateLastSaved = minDate
             };
             BuildObjs(libManager.GetItemList(movie).ToList(), "Movie"); // populate movies
@@ -152,54 +135,46 @@ public class Scraper
         {
             var album = new InternalItemsQuery()
             {
-                IncludeItemTypes = new[] { BaseItemKind.MusicAlbum },
+                IncludeItemTypes = 
+                    [BaseItemKind.MusicAlbum],
                 MinDateLastSaved = minDate
             };
             BuildObjs(libManager.GetItemList(album).ToList(), "Album"); // populate music albums
         }
     }
 
-    public void BuildObjs(List<BaseItem> items, string type)
+    private void BuildObjs(List<BaseItem> items, string type)
     {
         logger.Info($"Parsing {type}..");
-        BaseItem season, series, artist;
         totalLibCount = items.Count;
         logger.Info($"Scan Size: {totalLibCount}");
         logger.Info($"Scanning '{type}'");
-        foreach (BaseItem item in items)
+        foreach (var item in items)
         {
             logger.Debug("---------------");
             currCount++;
             progress.Report(currCount / (double)totalLibCount * 100);
             if (item.Path is not null)
             {
-                var isLiveTV = false;
+                var isLiveTv = false;
 
                 // Checks if entry is a live TV recording and skips if it is
-                foreach (string liveTvRoot in liveTvRootPaths)
+                foreach (var liveTvRoot in liveTvRootPaths)
                 {
-                    isLiveTV = item!.Path.Contains(liveTvRoot, StringComparison.InvariantCulture);
-                    if (isLiveTV)
+                    isLiveTv = item.Path.Contains(liveTvRoot, StringComparison.InvariantCulture);
+                    if (isLiveTv)
                     {
                         break;
                     }
                 }
 
-                if (isLiveTV)
+                if (isLiveTv)
                 {
                     logger.Debug($"{item.Path} is a live TV recording.  Skipping.");
                     continue;
                 }
 
-                var path = string.Empty;
-                if (type == "Album")
-                {
-                    path = Path.GetDirectoryName(item.Path);
-                }
-                else
-                {
-                    path = item.Path;
-                }
+                var path = type == "Album" ? Path.GetDirectoryName(item.Path) : item.Path;
 
                 // Checks if the item was previously processed.  False condition should never happen due to previous checks. 
                 if (InDatabase(SanitizeDbItem(path!)))
@@ -211,8 +186,8 @@ public class Scraper
                 var currFileObj = new JsonFileObj();
                 try
                 {
-                    logger.Debug($"LocationType: " + item.LocationType.ToString());
-                    logger.Debug($"LocationType: " + item.Path?.ToString());
+                    logger.Debug($"LocationType: " + item.LocationType);
+                    logger.Debug($"LocationType: " + item.Path);
                     
                     if (item.LocationType.ToString() == "Virtual")
                     {
@@ -220,55 +195,57 @@ public class Scraper
                         continue;
                     }
 
-                    if (type == "Series")
+                    switch (type)
                     {
-                        logger.Debug($"Found Series");
-                        season = item.FindParent<TVEntity.Season>();
-                        series = item.FindParent<TVEntity.Series>();
-                        if ((series is null) || (season is null))
+                        case "Series":
                         {
-                            logger.Debug($"Season or Series is null, skipping...");
-                            continue;
-                        }
+                            logger.Debug($"Found Series");
+                            BaseItem season = item.FindParent<TVEntity.Season>();
+                            BaseItem series = item.FindParent<TVEntity.Series>();
+                            if (series is null || season is null)
+                            {
+                                logger.Debug($"Season or Series is null, skipping...");
+                                continue;
+                            }
 
-                        currFileObj.Type = type;
-                        currFileObj = SeriesObj(item, season, series, currFileObj);
-                    }
-                    else if (type == "Movie")
-                    {
-                        logger.Debug($"Found Movie");
-                        currFileObj.Type = type;
-                        currFileObj = MovieObj(item, currFileObj);
-                    }
-                    else if (type == "Album")
-                    {
-                        logger.Debug($"Found Album");
-                        artist = item.FindParent<MusicArtist>();
-                        currFileObj.Type = type;
-                        currFileObj = MusicObj(item, artist, currFileObj);
-                    }
-                    else
-                    {
-                        logger.Error("Something went wrong..");
-                        continue;
+                            currFileObj.Type = type;
+                            currFileObj = SeriesObj(item, season, series, currFileObj);
+                            break;
+                        }
+                        
+                        case "Movie":
+                            logger.Debug($"Found Movie");
+                            currFileObj.Type = type;
+                            currFileObj = MovieObj(item, currFileObj);
+                            break;
+                        case "Album":
+                        {
+                            logger.Debug($"Found Album");
+                            BaseItem artist = item.FindParent<MusicArtist>();
+                            currFileObj.Type = type;
+                            currFileObj = MusicObj(item, artist, currFileObj);
+                            break;
+                        }
+                        
+                        default:
+                            logger.Error("Something went wrong..");
+                            continue;
                     }
 
                     try
                     {
-                        logger.Debug($"Checking if PosterPath Exists");
+                        logger.Debug("Checking if PosterPath Exists");
                         ArgumentNullException.ThrowIfNull(currFileObj.PosterPath);
                     }
                     catch
                     {
                         logger.Debug($"PosterPath is empty");
-                        continue;
                     }
                 }
                 catch (Exception e)
                 {
                     logger.Error($"Error processing item::{item.Path}");
                     logger.Error(e);
-                    continue;
                 }
                 finally
                 {
@@ -285,7 +262,7 @@ public class Scraper
                             "," + currFileObj.Season +
                             "," + currFileObj.Episode +
                             "," + SanitizeDbItem(currFileObj!.Overview) +
-                            "," + SanitizeDbItem(currFileObj.ItemID) +
+                            "," + SanitizeDbItem(currFileObj.ItemId) +
                             "," + SanitizeDbItem(currFileObj!.PosterPath) +
                             "," + SanitizeDbItem(currFileObj.Type) +
                             "," + currFileObj?.Emailed +
@@ -300,8 +277,7 @@ public class Scraper
             }
             else
             {
-                logger.Debug("Item Path is null!");
-                continue;
+                logger.Error("Item Path is null!");
             }
         }
     }
@@ -314,10 +290,10 @@ public class Scraper
         currFileObj.Season = season.IndexNumber ??= 0;
         currFileObj.Album = string.Empty;
         currFileObj.Overview = series.Overview;
-        currFileObj.ItemID = series.Id.ToString("N");
+        currFileObj.ItemId = series.Id.ToString("N");
         currFileObj.Emailed = 0;
 
-        logger.Debug($"ItemID: " + currFileObj.ItemID); // Series ItemID
+        logger.Debug($"ItemID: " + currFileObj.ItemId); // Series ItemID
         logger.Debug($"{currFileObj.Type}: {currFileObj.Title}"); // Series Title
 
         if (series.PrimaryImagePath is not null)
@@ -356,7 +332,7 @@ public class Scraper
         currFileObj.Season = -1;
         currFileObj.Album = string.Empty;
         currFileObj.Overview = movie.Overview;
-        currFileObj.ItemID = movie.Id.ToString("N");
+        currFileObj.ItemId = movie.Id.ToString("N");
         currFileObj.Emailed = 0;
 
         if (movie.PrimaryImagePath is not null)
@@ -388,7 +364,7 @@ public class Scraper
         currFileObj.Season = -1;
         currFileObj.Album = album.Name;
         currFileObj.Overview = string.Empty;
-        currFileObj.ItemID = album.Id.ToString("N");
+        currFileObj.ItemId = album.Id.ToString("N");
         currFileObj.PosterPath = artist.PrimaryImagePath;
         currFileObj.Emailed = 0;
 
@@ -405,33 +381,24 @@ public class Scraper
     {
         foreach (var row in db.Query("SELECT COUNT(*) FROM NewsletterData WHERE Filename=" + fileName + ";"))
         {
-            if (row is not null)
+            if (int.TryParse(row[0].ToString(), out var x) && x > 0)
             {
-                if (int.TryParse(row[0].ToString(), out var x) && x > 0)
-                {
-                    logger.Debug("NewsletterData Size: " + row[0].ToString());
-                    return true;
-                }
+                logger.Debug("NewsletterData Size: " + row[0]);
+                return true;
             }
         }
 
         return false;
     }
 
-    private string SanitizeDbItem(string unsanitizedString)
+    private static string SanitizeDbItem(string unsanitizedString)
     {
-        // string sanitize_string = string.Empty;
-        if (unsanitizedString is null)
-        {
-            unsanitizedString = string.Empty;
-        }
-
         return "'" + unsanitizedString.Replace("'", string.Empty, StringComparison.Ordinal) + "'";
     }
 
     private void UpdatePreviousRunTimestamp()
     {
-        DateTime currDate = DateTime.UtcNow;
+        var currDate = DateTime.UtcNow;
         db.ExecuteSql("UPDATE PreviousRun SET LastRun = '" + currDate + "' WHERE ID = 0;");
     }
 }
