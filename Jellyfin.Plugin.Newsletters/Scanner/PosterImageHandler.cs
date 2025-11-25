@@ -34,7 +34,7 @@ public static class PosterImageHandler
         }
         else
         {
-            var samplingOptions = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
+            var samplingOptions = new SKSamplingOptions(SKFilterMode.Last, SKMipmapMode.Last);
             using var scaledBitmap = skImage.Resize(new SKSizeI(200, newHeight), samplingOptions);
             using var image = SKImage.FromBitmap(scaledBitmap);
             using var encodedImage = image.Encode(GetSkiaSharpImageFormatFromExtension(extension), 50);
