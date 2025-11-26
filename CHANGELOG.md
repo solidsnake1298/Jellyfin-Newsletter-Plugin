@@ -1,3 +1,6 @@
+# 1.2.0.0
+- Use DTO service to retrieve season BaseItem when libManager returns null.  This happens when episodes are located directly in the series folder.
+
 # 1.1.0.3
 - Add dispose for smtp and mailmessage to prevent resource leaks.
 

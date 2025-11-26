@@ -9,6 +9,14 @@
         "imageUrl": "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png",
         "versions": [
             {
+                "version": "1.2.0.0",
+                "changelog": "- Use DTO service to retrieve season BaseItem when libManager returns null.\n",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v1.2.0.0/newsletters_1.2.0.0.zip",
+                "checksum": "b0d4b2b07fc63322d93563f627bb8189",
+                "timestamp": "2025-11-26T19:02:47Z"
+            },
+            {
                 "version": "1.1.0.3",
                 "changelog": "- Add dispose for smtp and mailmessage to prevent resource leaks.\n",
                 "targetAbi": "10.11.0.0",
