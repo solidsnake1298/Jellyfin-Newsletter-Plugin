@@ -200,9 +200,11 @@ public class Scraper
                             logger.Debug($"Found Series");
                             BaseItem season = item.FindParent<TVEntity.Season>();
                             BaseItem series = item.FindParent<TVEntity.Series>();
-                            // TODO: Find season BaseItem when all episodes are in series folder,
-                            // which causes the Season BaseItem to be null.  There is a FindSeasonId
-                            // method in the Episode entity for this situation.
+                            /*
+                                TODO: Find season BaseItem when all episodes are in series folder,
+                                which causes the Season BaseItem to be null.  There is a FindSeasonId
+                                method in the Episode entity for this situation. 
+                            */
                             if (series is null || season is null)
                             {
                                 logger.Debug($"Season or Series is null, skipping...");
@@ -258,15 +260,15 @@ public class Scraper
                             "INSERT INTO NewsletterData (Filename, Title, Album, Season, Episode, Overview, ItemID, PosterPath, Type, Emailed) " +
                             "VALUES (" +
                             SanitizeDbItem(currFileObj.Filename) +
-                            "," + SanitizeDbItem(currFileObj!.Title) +
-                            "," + SanitizeDbItem(currFileObj!.Album) +
+                            "," + SanitizeDbItem(currFileObj.Title) +
+                            "," + SanitizeDbItem(currFileObj.Album) +
                             "," + currFileObj.Season +
                             "," + currFileObj.Episode +
-                            "," + SanitizeDbItem(currFileObj!.Overview) +
+                            "," + SanitizeDbItem(currFileObj.Overview) +
                             "," + SanitizeDbItem(currFileObj.ItemId) +
-                            "," + SanitizeDbItem(currFileObj!.PosterPath) +
+                            "," + SanitizeDbItem(currFileObj.PosterPath) +
                             "," + SanitizeDbItem(currFileObj.Type) +
-                            "," + currFileObj?.Emailed +
+                            "," + currFileObj.Emailed +
                             ");");
                         logger.Debug("Complete!");
                     }

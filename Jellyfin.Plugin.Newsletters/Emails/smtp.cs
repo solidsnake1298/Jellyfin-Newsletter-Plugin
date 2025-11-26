@@ -43,23 +43,29 @@ public class Smtp : ControllerBase
         try
         {
             logger.Debug("Sending out test mail!");
-            var mail = new MailMessage();
+            var mail = new MailMessage
+            {
+                From = new MailAddress(config.FromAddr),
+                Subject = "Jellyfin Newsletters - Test",
+                Body = "Success! You have properly configured your email notification settings",
+                IsBodyHtml = false
+            };
 
-            mail.From = new MailAddress(config.FromAddr);
             mail.To.Clear();
-            mail.Subject = "Jellyfin Newsletters - Test";
-            mail.Body = "Success! You have properly configured your email notification settings";
-            mail.IsBodyHtml = false;
 
-            foreach (string email in config.ToAddr.Split(','))
+            foreach (var email in config.ToAddr.Split(','))
             {
                 mail.Bcc.Add(email.Trim());
             }
 
-            var smtp = new SmtpClient(config.SMTPServer, config.SMTPPort);
-            smtp.Credentials = new NetworkCredential(config.SMTPUser, config.SMTPPass);
-            smtp.EnableSsl = true;
+            var smtp = new SmtpClient(config.SMTPServer, config.SMTPPort)
+            {
+                Credentials = new NetworkCredential(config.SMTPUser, config.SMTPPass),
+                EnableSsl = true
+            };
             smtp.Send(mail);
+            mail.Dispose();
+            smtp.Dispose();
         }
         catch (Exception e)
         {
@@ -144,6 +150,8 @@ public class Smtp : ControllerBase
                 logger.Info("Successfully sent email.");
 
                 hb.CleanUp();
+                mail.Dispose();
+                smtp.Dispose();
                 // Attachment Image dir cleanup
                 var di = new DirectoryInfo($"{attachmentDir}");
                 logger.Info("Cleaning up WIP files...");
