@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using Jellyfin.Plugin.Newsletters.Configuration;
 
-namespace Jellyfin.Plugin.Newsletters.LOGGER;
+namespace Jellyfin.Plugin.Newsletters;
 
 /// <summary>
 /// Initializes a new instance of the <see cref="Logger"/> class.
@@ -27,10 +27,9 @@ public class Logger
     /// </summary>
     public void Debug(object msg)
     {
-        PluginConfiguration config = Plugin.Instance!.Configuration;
         if (config.DebugMode)
         {
-            Info(msg);
+            Inform(msg, "DEBUG");
         }
     }
 
@@ -65,17 +64,17 @@ public class Logger
     /// <param name="type">Type of warning ("ERR", "WARN", "INFO").</param>
     private void Inform(object msg, string type)
     {
-        string logMsgPrefix = $"[NLP]: {GetDateTime()} - [{type}] ";
+        var logMsgPrefix = $"[NLP]: {GetDateTime()} - [{type}] ";
         Console.WriteLine($"{logMsgPrefix}{msg}");
         File.AppendAllText(logFile, $"{logMsgPrefix}{msg}\n");
     }
 
-    private string GetDateTime()
+    private static string GetDateTime()
     {
         return DateTime.Now.ToString("[yyyy-MM-dd] :: [HH:mm:ss]", System.Globalization.CultureInfo.CurrentCulture);
     }
 
-    private string GetDate()
+    private static string GetDate()
     {
         return DateTime.Now.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.CurrentCulture);
     }

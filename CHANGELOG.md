@@ -1,3 +1,16 @@
+<<<<<<< HEAD
+# 1.1.0.2
+- Code cleanup.
+- Removed unused directives in each class.
+- Removed unused variables.  Removed unnecessary variable declarations.
+- Used generic variable declarations where possible.
+- Apply best practices.
+- Remove duplicate null checks.
+- Improve logging.
+- Changed skia sampling options for improved resize image quality.
+
+=======
+>>>>>>> master
 # 1.1.0.1
 - Fixed error regarding writing HTML file.  OBE, removed.
 - Added DB table check.  Only init when tables aren't present.

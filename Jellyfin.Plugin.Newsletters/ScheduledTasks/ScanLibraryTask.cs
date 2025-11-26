@@ -1,13 +1,11 @@
 #pragma warning disable CS1591
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Plugin.Newsletters.Scripts.SCRAPER;
+using Jellyfin.Plugin.Newsletters.Scanner;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
-using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.Tasks;
 
 namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
@@ -17,13 +15,13 @@ namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
     /// </summary>
     public class ScanLibraryTask : IScheduledTask
     {
-        private readonly ILibraryManager _libraryManager;
-        private readonly IRecordingsManager _recordingManager;
+        private readonly ILibraryManager libraryManager;
+        private readonly IRecordingsManager recordingManager;
 
         public ScanLibraryTask(ILibraryManager libraryManager, IRecordingsManager recordingManager)
         {
-            _libraryManager = libraryManager;
-            _recordingManager = recordingManager;
+            this.libraryManager = libraryManager;
+            this.recordingManager = recordingManager;
         }
 
         /// <inheritdoc />
@@ -58,7 +56,7 @@ namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
             cancellationToken.ThrowIfCancellationRequested();
             progress.Report(0);
 
-            Scraper myScraper = new Scraper(_libraryManager, _recordingManager, progress, cancellationToken);
+            var myScraper = new Scraper(libraryManager, recordingManager, progress);
             return myScraper.GetNewsletterData();
         }
     }

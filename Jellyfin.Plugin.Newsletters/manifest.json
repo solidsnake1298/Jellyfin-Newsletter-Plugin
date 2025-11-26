@@ -9,6 +9,17 @@
         "imageUrl": "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png",
         "versions": [
             {
+<<<<<<< HEAD
+                "version": "1.1.0.2",
+                "changelog": "- Code cleanup, apply best practices, remove duplicate null checks, improve logging.\n",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v1.1.0.2/newsletters_1.1.0.2.zip",
+                "checksum": "5378c2b4473e043b918af19c376081a6",
+                "timestamp": "2025-11-25T20:06:21Z"
+            },
+            {
+=======
+>>>>>>> master
                 "version": "1.1.0.1",
                 "changelog": "- Fixed error regarding writing HTML file.  OBE, removed. - Added DB table check.  Only init when tables aren't present. - Ensured short lived DB connections.\n",
                 "targetAbi": "10.11.0.0",

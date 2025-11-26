@@ -1,25 +1,20 @@
 #pragma warning disable 1591
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
 using Jellyfin.Plugin.Newsletters.Configuration;
-using Jellyfin.Plugin.Newsletters.Emails.HTMLBuilder;
-using Jellyfin.Plugin.Newsletters.LOGGER;
-using Jellyfin.Plugin.Newsletters.Scanner.NLImageHandler;
-using Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
-using Jellyfin.Plugin.Newsletters.Shared.DATA;
+using Jellyfin.Plugin.Newsletters.Scanner;
+using Jellyfin.Plugin.Newsletters.Shared.Database;
+using Jellyfin.Plugin.Newsletters.Shared.Entities;
 using MediaBrowser.Common.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
-namespace Jellyfin.Plugin.Newsletters.Emails.EMAIL;
+namespace Jellyfin.Plugin.Newsletters.Emails;
 
 /// <summary>
 /// Interaction logic for SendMail.xaml.
@@ -32,12 +27,12 @@ public class Smtp : ControllerBase
 {
     private readonly PluginConfiguration config;
     // private readonly string newsletterDataFile;
-    private SQLiteDatabase db;
-    private Logger logger;
+    private readonly SqLiteDatabase db;
+    private readonly Logger logger;
 
     public Smtp()
     {
-        db = new SQLiteDatabase();
+        db = new SqLiteDatabase();
         logger = new Logger();
         config = Plugin.Instance!.Configuration;
     }
@@ -45,13 +40,10 @@ public class Smtp : ControllerBase
     [HttpPost("SendTestMail")]
     public void SendTestMail()
     {
-        MailMessage mail;
-        SmtpClient smtp;
-
         try
         {
             logger.Debug("Sending out test mail!");
-            mail = new MailMessage();
+            var mail = new MailMessage();
 
             mail.From = new MailAddress(config.FromAddr);
             mail.To.Clear();
@@ -64,7 +56,7 @@ public class Smtp : ControllerBase
                 mail.Bcc.Add(email.Trim());
             }
 
-            smtp = new SmtpClient(config.SMTPServer, config.SMTPPort);
+            var smtp = new SmtpClient(config.SMTPServer, config.SMTPPort);
             smtp.Credentials = new NetworkCredential(config.SMTPUser, config.SMTPPass);
             smtp.EnableSsl = true;
             smtp.Send(mail);
@@ -84,98 +76,90 @@ public class Smtp : ControllerBase
         {
             if (NewsletterDbIsPopulated())
             {
-                logger.Debug("Sending out mail!");
-                MailMessage mail = new MailMessage();
-                string smtpAddress = config.SMTPServer;
-                int portNumber = config.SMTPPort;
-                bool enableSSL = true;
-                string emailFromAddress = config.FromAddr;
-                string username = config.SMTPUser;
-                string password = config.SMTPPass;
-                string emailToAddress = config.ToAddr;
-                string subject = config.Subject;
-
+                logger.Info("Generating email...");
+                var mail = new MailMessage();
                 // Builds email HTML
-                HtmlBuilder hb = new HtmlBuilder();
-
+                var hb = new HtmlBuilder();
                 // Generates initial HTML body
-                string body = hb.GetDefaultHTMLBody();
+                var body = hb.GetDefaultHtmlBody();
                 // Generates then inserts each entry (series, movie, album) into the body
-                string builtString = hb.BuildDataHtmlStringFromNewsletterData();
+                var builtString = hb.BuildDataHtmlStringFromNewsletterData();
                 builtString = hb.ReplaceBodyWithBuiltString(body, builtString);
                 // Adds current date to top of newsletter
-                string currDate = DateTime.Today.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+                var currDate = DateTime.Today.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
                 builtString = builtString.Replace("{Date}", currDate, StringComparison.Ordinal);
                 // Retrieves, resizes, and attaches/embed images into email
-                List<string> contentId = hb.BuildContentId();
-                string attachmentDir = config.DataPath + "/newsletterImages";
-                foreach (var row in contentId)
+                var contentIdList = hb.BuildContentId();
+                var attachmentDir = config.DataPath + "/newsletterImages";
+                logger.Info("Resizing images and attaching to email...");
+                foreach (var row in contentIdList)
                 {
                     try
                     {
                         // Uses series/movie/album artist itemID as HTML content ID tag key
-                        ContentIdJson? contentID = JsonConvert.DeserializeObject<ContentIdJson>(row);
-                        string posterPath = contentID!.PosterPath;
-                        string itemID = contentID!.ItemID;
-                        string extension = string.Empty;
+                        var contentId = JsonConvert.DeserializeObject<ContentIdJson>(row);
+                        var posterPath = contentId!.PosterPath;
+                        var itemId = contentId.ItemId;
                         Directory.CreateDirectory(attachmentDir);
-                        Stream imageStream;
                         // Resizes image 
-                        imageStream = PosterImageHandler.ResizeImage(posterPath);
-                        extension = Path.GetExtension(posterPath);
+                        var imageStream = PosterImageHandler.ResizeImage(posterPath);
+                        var extension = Path.GetExtension(posterPath);
                         // Writes resized image to disk, attaches to email
                         imageStream.Position = 0;
-                        string? attachmentPath = $"{attachmentDir}/{itemID}{extension}";
+                        var attachmentPath = $"{attachmentDir}/{itemId}{extension}";
                         var fileStream = System.IO.File.Create($"{attachmentPath}");
                         imageStream.CopyTo(fileStream);
                         fileStream.Close();
-                        Attachment? fileAttachment = new Attachment($"{attachmentPath}");
-                        fileAttachment.ContentId = itemID;
+                        var fileAttachment = new Attachment($"{attachmentPath}");
+                        fileAttachment.ContentId = itemId;
                         mail.Attachments.Add(fileAttachment);
                     }
                     catch
                     {
-                        logger.Debug("Error generating image attachment.  Null image path?");
+                        logger.Error("Error generating image attachment.  Null image path?");
                     }
                 }
                 
                 // SMTP header
-                mail.From = new MailAddress(emailFromAddress, emailFromAddress);
+                mail.From = new MailAddress(config.FromAddr, config.FromAddr);
                 mail.To.Clear();
                 mail.Headers.Add("MIME-Version", "1.0");
                 mail.Headers.Add("Content-Type", "multipart/mixed");
                 mail.Headers.Add("Content-Type", "boundary='----blackmoon'" );
-                mail.Subject = subject;
-                mail.Body = Regex.Replace(builtString, "{[A-za-z]*}", " "); // Final cleanup
+                mail.Subject = config.Subject;
+                mail.Body = Regex.Replace(builtString, "{[A-za-z]*}", " "); // Final regex replacement
                 mail.IsBodyHtml = true;
 
-                foreach (string email in emailToAddress.Split(','))
+                foreach (string email in config.ToAddr.Split(','))
                 {
                     mail.Bcc.Add(email.Trim());
                 }
 
                 // Sends email
-                SmtpClient smtp = new SmtpClient(smtpAddress, portNumber);
-                smtp.Credentials = new NetworkCredential(username, password);
-                smtp.EnableSsl = enableSSL;
+                var smtp = new SmtpClient(config.SMTPServer, config.SMTPPort);
+                smtp.Credentials = new NetworkCredential(config.SMTPUser, config.SMTPPass);
+                smtp.EnableSsl = true;
                 smtp.Send(mail);
+
+                logger.Info("Successfully sent email.");
 
                 hb.CleanUp();
                 // Attachment Image dir cleanup
-                System.IO.DirectoryInfo di = new DirectoryInfo($"{attachmentDir}");
-                foreach (FileInfo file in di.GetFiles())
+                var di = new DirectoryInfo($"{attachmentDir}");
+                logger.Info("Cleaning up WIP files...");
+                foreach (var file in di.GetFiles())
                 {
                     file.Delete(); 
                 }
                 
-                foreach (DirectoryInfo dir in di.GetDirectories())
+                foreach (var dir in di.GetDirectories())
                 {
                     dir.Delete(true); 
                 }
             }
             else
             {
-                logger.Info("There is no Newsletter data.. Have I scanned or sent out a newsletter recently?");
+                logger.Info("There is no Newsletter data.  Was the file scraper job ran prior to generating an email?");
             }
         }
         catch (Exception e)
@@ -184,7 +168,7 @@ public class Smtp : ControllerBase
         }
         finally
         {
-            logger.Debug("Finished sending email!!");
+            logger.Debug("Successfully completed job.");
         }
     }
 
@@ -193,13 +177,11 @@ public class Smtp : ControllerBase
         db.CreateConnection();
         foreach (var row in db.Query("SELECT COUNT(*) FROM NewsletterData WHERE Emailed = 0;"))
         {
-            if (row is not null)
+            if (int.TryParse(row[0].ToString(), out var x) && x > 0)
             {
-                if (int.TryParse(row[0].ToString(), out var x) && x > 0)
-                {
-                    db.CloseConnection();
-                    return true;
-                }
+                db.CloseConnection();
+                logger.Info($"Found {x} items waiting to be emailed.");
+                return true;
             }
         }
 

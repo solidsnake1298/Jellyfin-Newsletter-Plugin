@@ -1,28 +1,22 @@
 #pragma warning disable 1591, CA1304
-using System;
 using System.Collections.Generic;
 using System.IO;
-using Jellyfin.Plugin.Newsletters.Configuration;
-using Jellyfin.Plugin.Newsletters.LOGGER;
-using Jellyfin.Plugin.Newsletters.Scripts.ENTITIES;
-using MediaBrowser.Common.Configuration;
 using SQLitePCL;
 using SQLitePCL.pretty;
 
-namespace Jellyfin.Plugin.Newsletters.Shared.DATA;
+namespace Jellyfin.Plugin.Newsletters.Shared.Database;
 
-public class SQLiteDatabase
+public class SqLiteDatabase
 {
-    private readonly PluginConfiguration config;
-    private string dbFilePath;
-    private string dbLockPath;
-    private Logger logger;
-    private SQLiteDatabaseConnection? _db;
+    private readonly string dbFilePath;
+    private readonly string dbLockPath;
+    private readonly Logger logger;
+    private SQLiteDatabaseConnection? db;
 
-    public SQLiteDatabase()
+    public SqLiteDatabase()
     {
         logger = new Logger();
-        config = Plugin.Instance!.Configuration;
+        var config = Plugin.Instance!.Configuration;
         SQLite3.EnableSharedCache = false;
 
         _ = raw.sqlite3_config(raw.SQLITE_CONFIG_MEMSTATUS, 0);
@@ -42,10 +36,10 @@ public class SQLiteDatabase
             CreateConnection();
             if (CheckTables())
             {
-                logger.Debug("Database not initialized.  Creating tables and migrating any existing or legacy data...");
+                logger.Info("Database not initialized.  Creating tables and migrating any existing or legacy data...");
                 CreateTables();
                 MigrateTables();
-                logger.Debug("Done Init of tables");
+                logger.Info("Done database init...");
             }
             else
             {
@@ -56,7 +50,7 @@ public class SQLiteDatabase
         }
         else
         {
-            logger.Debug("Database lock file shows database is in use: " + dbLockPath);
+            logger.Error("Database lock file shows database is in use: " + dbLockPath);
         }
     }
 
@@ -64,20 +58,23 @@ public class SQLiteDatabase
     {
         if (!File.Exists(dbLockPath)) // Database is not locked
         {
+            logger.Info("Opening database connection...");
             logger.Debug("Opening Database: " + dbFilePath);
-            _db = SQLite3.Open(dbFilePath);
+            db = SQLite3.Open(dbFilePath);
             File.WriteAllText(dbLockPath, string.Empty);
         }
         else
         {
-            logger.Debug("Database lock file shows database is in use: " + dbLockPath);
+            logger.Error("Database lock file shows database is in use: " + dbLockPath);
         }
     }
 
     private bool CheckTables()
     {
-        List<string> nlpColumns = new List<string> { "Filename", "Title", "Album", "Season", "Episode", "Overview", "ItemID", "PosterPath", "Type", "Emailed" };
-        List<string> prColumns = new List<string> { "ID", "LastRun" };
+        List<string> nlpColumns =
+            ["Filename", "Title", "Album", "Season", "Episode", "Overview", "ItemID", "PosterPath", "Type", "Emailed"];
+        List<string> prColumns = 
+            ["ID", "LastRun"];
         foreach (var row in Query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='NewsletterData';"))
         {
             logger.Debug($"nlpPresent:: {row[0].ToString()}");
@@ -86,10 +83,10 @@ public class SQLiteDatabase
                 foreach (var column in Query("SELECT name FROM pragma_table_info('NewsletterData');"))
                 {
                     logger.Debug($"column:: {column[0]}");
-                    var isColumnPresent = nlpColumns.Contains(column[0]!.ToString());
+                    var isColumnPresent = nlpColumns.Contains(column[0].ToString());
                     if (isColumnPresent)
                     {
-                        continue;
+                        logger.Debug($"Column {column} is present.");
                     }
                     else
                     {
@@ -111,10 +108,10 @@ public class SQLiteDatabase
                 foreach (var column in Query("SELECT name FROM pragma_table_info('PreviousRun');"))
                 {
                     logger.Debug($"column:: {column[0]}");
-                    var isColumnPresent = prColumns.Contains(column[0]!.ToString());
+                    var isColumnPresent = prColumns.Contains(column[0].ToString());
                     if (isColumnPresent)
                     {
-                        continue;
+                        logger.Debug($"Column {column} is present.");
                     }
                     else
                     {
@@ -142,7 +139,7 @@ public class SQLiteDatabase
 
     private void CreateTables()
     {
-        ExecuteSQL("CREATE TABLE IF NOT EXISTS NewsletterData (" +
+        ExecuteSql("CREATE TABLE IF NOT EXISTS NewsletterData (" +
                 "Filename TEXT NOT NULL," +
                 "Title TEXT," +
                 "Album TEXT," +
@@ -154,22 +151,22 @@ public class SQLiteDatabase
                 "Type TEXT," +
                 "Emailed INT," +
                 "PRIMARY KEY (Filename));");
-        ExecuteSQL("CREATE TABLE IF NOT EXISTS PreviousRun (" +
+        ExecuteSql("CREATE TABLE IF NOT EXISTS PreviousRun (" +
                 "ID INTEGER NOT NULL," +
                 "LastRun TEXT," +
                 "PRIMARY KEY (ID));");
-        ExecuteSQL("CREATE TRIGGER IF NOT EXISTS PreviousRunNoInsert " + 
+        ExecuteSql("CREATE TRIGGER IF NOT EXISTS PreviousRunNoInsert " + 
                 "BEFORE INSERT ON PreviousRun " +
                 "WHEN (SELECT COUNT(*) FROM PreviousRun) >= 1 " +
                 "BEGIN " +
                 "SELECT RAISE(FAIL, 'Only one row allowed!'); " +
                 "END;");
-        // Initalizes table with default value.  Skips if row is already present.
+        // Initializes table with default value.  Skips if row is already present.
         try
         {
-            ExecuteSQL("INSERT OR IGNORE INTO PreviousRun (" +
+            ExecuteSql("INSERT OR IGNORE INTO PreviousRun (" +
                 "ID,LastRun) " +
-                "VALUES (0,'12/30/2018 00:00:00 AM');");
+                "VALUES (0,'12/30/2018 00:00:00 AM');");
         }
         catch
         {
@@ -181,7 +178,7 @@ public class SQLiteDatabase
     {
         try
         {
-            ExecuteSQL("INSERT INTO NewsletterData (" +
+            ExecuteSql("INSERT INTO NewsletterData (" +
                             "Filename," +
                             "Title," +
                             "Season," +
@@ -200,9 +197,9 @@ public class SQLiteDatabase
                             "PosterPath," +
                             "Type " +
                             "FROM ArchiveData;");
-            ExecuteSQL("DROP TABLE IF EXISTS CurrRunData");
-            ExecuteSQL("DROP TABLE IF EXISTS CurrNewsletterData");
-            ExecuteSQL("DROP TABLE IF EXISTS ArchiveData");
+            ExecuteSql("DROP TABLE IF EXISTS CurrRunData");
+            ExecuteSql("DROP TABLE IF EXISTS CurrNewsletterData");
+            ExecuteSql("DROP TABLE IF EXISTS ArchiveData");
             logger.Debug("Legacy tables successfully migrated.");
         }
         catch
@@ -214,21 +211,22 @@ public class SQLiteDatabase
     public IEnumerable<IReadOnlyList<ResultSetValue>> Query(string query)
     {
         logger.Debug("Running Query: " + query);
-        return _db.Query(query);
+        return db.Query(query);
     }
 
-    public void ExecuteSQL(string query)
+    public void ExecuteSql(string query)
     {
         logger.Debug("Executing SQL Statement: " + query);
-        _db.Execute(query);
+        db.Execute(query);
     }
 
     public void CloseConnection()
     {
         if (File.Exists(dbLockPath)) // Database is locked
         {
+            logger.Info("Closing DB Connection");
             logger.Debug("Disposing DB connection: " + dbFilePath);
-            _db!.Dispose();
+            db!.Dispose();
             logger.Debug("Removing database lock file: " + dbLockPath);
             File.Delete(dbLockPath);
         }
