@@ -8,6 +8,7 @@ using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.Newsletters.Configuration;
 using Jellyfin.Plugin.Newsletters.Shared.Database;
 using Jellyfin.Plugin.Newsletters.Shared.Entities;
+using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
@@ -23,6 +24,7 @@ public class Scraper
     private readonly PluginConfiguration config;
     private readonly ILibraryManager libManager;
     private readonly IRecordingsManager recManager;
+    private readonly IDtoService dtoService;
     private readonly SqLiteDatabase db;
     private readonly Logger logger;
     private readonly IProgress<double> progress;
@@ -33,13 +35,14 @@ public class Scraper
     private string[] liveTvRootPaths = 
         [];
 
-    public Scraper(ILibraryManager libraryManager, IRecordingsManager recordingManager, IProgress<double> passedProgress)
+    public Scraper(ILibraryManager libraryManager, IRecordingsManager recordingManager, IDtoService dtoServiceProvider, IProgress<double> passedProgress)
     {
         logger = new Logger();
         progress = passedProgress;
         config = Plugin.Instance!.Configuration;
         libManager = libraryManager;
         recManager = recordingManager;
+        dtoService = dtoServiceProvider;
 
         totalLibCount = currCount = 0;
 
@@ -74,6 +77,7 @@ public class Scraper
         {
             UpdatePreviousRunTimestamp();
             db.CloseConnection();
+            progress.Report(100);
             logger.Info("Completed scanning for new items.");
         }
 
@@ -198,17 +202,24 @@ public class Scraper
                         case "Series":
                         {
                             logger.Debug($"Found Series");
-                            BaseItem season = item.FindParent<TVEntity.Season>();
+                            BaseItem? season = item.FindParent<TVEntity.Season>();
                             BaseItem series = item.FindParent<TVEntity.Series>();
-                            /*
-                                TODO: Find season BaseItem when all episodes are in series folder,
-                                which causes the Season BaseItem to be null.  There is a FindSeasonId
-                                method in the Episode entity for this situation. 
-                            */
-                            if (series is null || season is null)
+                            if (season is null)
                             {
-                                logger.Debug($"Season or Series is null, skipping...");
-                                continue;
+                                logger.Debug("Season is null, using DTO service to retrieve season BaseItem...");
+                                var dtoOptions = new DtoOptions(false) { EnableImages = false };
+                                var dto = dtoService.GetBaseItemDto(item, dtoOptions);
+                                var emptyGuid = new Guid("00000000-0000-0000-0000-000000000000");
+                                var seasonId = dto.SeasonId ??= emptyGuid;
+                                season = libManager.GetItemById(seasonId);
+                                logger.Debug($"SeasonID:: {seasonId}");
+                                if (season is null)
+                                {
+                                    logger.Debug("DTO service couldn't retrieve a season BaseItem.  Skipping...");
+                                    continue;
+                                }
+                                
+                                logger.Debug("DTO service successfully retrieve season BaseItem...");
                             }
 
                             currFileObj.Type = type;
