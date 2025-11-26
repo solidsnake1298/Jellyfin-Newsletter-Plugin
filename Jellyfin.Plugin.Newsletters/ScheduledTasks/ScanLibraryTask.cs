@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Newsletters.Scanner;
+using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Tasks;
@@ -17,11 +18,13 @@ namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
     {
         private readonly ILibraryManager libraryManager;
         private readonly IRecordingsManager recordingManager;
+        private readonly IDtoService dtoService;
 
-        public ScanLibraryTask(ILibraryManager libraryManager, IRecordingsManager recordingManager)
+        public ScanLibraryTask(ILibraryManager libraryManager, IRecordingsManager recordingManager, IDtoService dtoService)
         {
             this.libraryManager = libraryManager;
             this.recordingManager = recordingManager;
+            this.dtoService = dtoService;
         }
 
         /// <inheritdoc />
@@ -56,7 +59,7 @@ namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
             cancellationToken.ThrowIfCancellationRequested();
             progress.Report(0);
 
-            var myScraper = new Scraper(libraryManager, recordingManager, progress);
+            var myScraper = new Scraper(libraryManager, recordingManager, dtoService, progress);
             return myScraper.GetNewsletterData();
         }
     }
