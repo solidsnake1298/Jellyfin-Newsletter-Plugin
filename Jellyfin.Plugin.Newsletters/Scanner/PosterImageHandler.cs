@@ -34,6 +34,7 @@ public static class PosterImageHandler
         }
         else
         {
+            // TODO: Figure out higher quality scaling options equivalent to SkFilterQuality High.
             var samplingOptions = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
             using var scaledBitmap = skImage.Resize(new SKSizeI(200, newHeight), samplingOptions);
             using var image = SKImage.FromBitmap(scaledBitmap);
