@@ -17,6 +17,7 @@ public class JsonFileObj
         Album = string.Empty;
         Season = 0;
         Episode = 0;
+        EndEpisode = 0;
         Overview = string.Empty;
         ItemId = string.Empty;
         PosterPath = string.Empty;
@@ -33,6 +34,8 @@ public class JsonFileObj
     public int Season { get; set; }
 
     public int Episode { get; set; }
+
+    public int EndEpisode { get; set; }
 
     public string Overview { get; set; }
 
@@ -53,11 +56,12 @@ public class JsonFileObj
             Album = row[2].ToString(),
             Season = int.Parse(row[3].ToString(), CultureInfo.CurrentCulture),
             Episode = int.Parse(row[4].ToString(), CultureInfo.CurrentCulture),
-            Overview = row[5].ToString(),
-            ItemId = row[6].ToString(),
-            PosterPath = row[7].ToString(),
-            Type = row[8].ToString(),
-            Emailed = int.Parse(row[9].ToString(), CultureInfo.CurrentCulture)
+            EndEpisode = int.Parse(row[5].ToString(), CultureInfo.CurrentCulture),
+            Overview = row[6].ToString(),
+            ItemId = row[7].ToString(),
+            PosterPath = row[8].ToString(),
+            Type = row[9].ToString(),
+            Emailed = int.Parse(row[10].ToString(), CultureInfo.CurrentCulture)
         };
 
         return obj;
