@@ -1,3 +1,6 @@
+# 1.3.1.0
+- Initial Jellyfin 10.12 (12.0) support
+
 # 1.3.0.0
 - Correctly parse files that contain multiple episodes.
 
