@@ -39,6 +39,7 @@ public class SqLiteDatabase
                 logger.Info("Database not initialized.  Creating tables and migrating any existing or legacy data...");
                 CreateTables();
                 MigrateTables();
+                InitializeEndEpisode();
                 logger.Info("Done database init...");
             }
             else
@@ -72,7 +73,7 @@ public class SqLiteDatabase
     private bool CheckTables()
     {
         List<string> nlpColumns =
-            ["Filename", "Title", "Album", "Season", "Episode", "Overview", "ItemID", "PosterPath", "Type", "Emailed"];
+            ["Filename", "Title", "Album", "Season", "Episode", "EndEpisode", "Overview", "ItemID", "PosterPath", "Type", "Emailed"];
         List<string> prColumns = 
             ["ID", "LastRun"];
         foreach (var row in Query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='NewsletterData';"))
@@ -145,6 +146,7 @@ public class SqLiteDatabase
                 "Album TEXT," +
                 "Season INT," +
                 "Episode INT," +
+                "EndEpisode INT," +
                 "Overview TEXT," +
                 "ItemID TEXT," +
                 "PosterPath TEXT," +
@@ -171,6 +173,25 @@ public class SqLiteDatabase
         catch
         {
             logger.Debug("PreviousRun already populated.");
+        }
+
+        // Adds new columns for existing tables
+        logger.Info($"Altering DB table: NewsletterData");
+        // <TABLE_NAME, DATA_TYPE>
+        Dictionary<string, string> new_cols = new Dictionary<string, string>();
+        new_cols.Add("EndEpisode", "INT");
+
+        foreach (KeyValuePair<string, string> col in new_cols)
+        {
+            try
+            {
+                logger.Debug($"Adding Table Columns for DB updates...");
+                ExecuteSql($"ALTER TABLE NewsletterData ADD COLUMN {col.Key} {col.Value};");
+            }
+            catch (SQLiteException sle)
+            {
+                logger.Debug(sle);
+            }
         }
     }
     
@@ -205,6 +226,18 @@ public class SqLiteDatabase
         catch
         {
             logger.Debug("Legacy tables aren't present.");
+        }
+    }
+
+    private void InitializeEndEpisode()
+    {
+        try
+        {
+            ExecuteSql("UPDATE NewsletterData SET EndEpisode = 0 WHERE EndEpisode is null;");
+        }
+        catch
+        {
+            logger.Debug("EndEpisode column not present.");
         }
     }
 

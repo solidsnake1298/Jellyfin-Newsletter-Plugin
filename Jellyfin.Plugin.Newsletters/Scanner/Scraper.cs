@@ -204,11 +204,17 @@ public class Scraper
                             logger.Debug($"Found Series");
                             BaseItem? season = item.FindParent<TVEntity.Season>();
                             BaseItem series = item.FindParent<TVEntity.Series>();
+                            var dtoOptions = new DtoOptions(false) { EnableImages = false };
+                            var dto = dtoService.GetBaseItemDto(item, dtoOptions);
+                            var endEpisode = dto.IndexNumberEnd ??= 0;
+                            if (endEpisode is not 0)
+                            {
+                                logger.Debug("Item has IndexNumberEnd.  Item is multiple episodes.");
+                            }
+                            
                             if (season is null)
                             {
                                 logger.Debug("Season is null, using DTO service to retrieve season BaseItem...");
-                                var dtoOptions = new DtoOptions(false) { EnableImages = false };
-                                var dto = dtoService.GetBaseItemDto(item, dtoOptions);
                                 var emptyGuid = new Guid("00000000-0000-0000-0000-000000000000");
                                 var seasonId = dto.SeasonId ??= emptyGuid;
                                 season = libManager.GetItemById(seasonId);
@@ -223,15 +229,18 @@ public class Scraper
                             }
 
                             currFileObj.Type = type;
-                            currFileObj = SeriesObj(item, season, series, currFileObj);
+                            currFileObj = SeriesObj(item, season, series, endEpisode, currFileObj);
                             break;
                         }
                         
                         case "Movie":
+                        {
                             logger.Debug($"Found Movie");
                             currFileObj.Type = type;
                             currFileObj = MovieObj(item, currFileObj);
                             break;
+                        }
+
                         case "Album":
                         {
                             logger.Debug($"Found Album");
@@ -268,13 +277,14 @@ public class Scraper
                     try
                     {
                         db.ExecuteSql(
-                            "INSERT INTO NewsletterData (Filename, Title, Album, Season, Episode, Overview, ItemID, PosterPath, Type, Emailed) " +
+                            "INSERT INTO NewsletterData (Filename, Title, Album, Season, Episode, EndEpisode, Overview, ItemID, PosterPath, Type, Emailed) " +
                             "VALUES (" +
                             SanitizeDbItem(currFileObj.Filename) +
                             "," + SanitizeDbItem(currFileObj.Title) +
                             "," + SanitizeDbItem(currFileObj.Album) +
                             "," + currFileObj.Season +
                             "," + currFileObj.Episode +
+                            "," + currFileObj.EndEpisode +
                             "," + SanitizeDbItem(currFileObj.Overview) +
                             "," + SanitizeDbItem(currFileObj.ItemId) +
                             "," + SanitizeDbItem(currFileObj.PosterPath) +
@@ -296,11 +306,12 @@ public class Scraper
         }
     }
 
-    private JsonFileObj SeriesObj(BaseItem episode, BaseItem season, BaseItem series, JsonFileObj currFileObj)
+    private JsonFileObj SeriesObj(BaseItem episode, BaseItem season, BaseItem series, int endEpisode, JsonFileObj currFileObj)
     {
         currFileObj.Filename = episode.Path;
         currFileObj.Title = series.Name;
         currFileObj.Episode = episode.IndexNumber ??= 0;
+        currFileObj.EndEpisode = endEpisode;
         currFileObj.Season = season.IndexNumber ??= 0;
         currFileObj.Album = string.Empty;
         currFileObj.Overview = series.Overview;
@@ -330,6 +341,7 @@ public class Scraper
 
         logger.Debug($"Season: {currFileObj.Season}");
         logger.Debug($"Episode Number: {currFileObj.Episode}");
+        logger.Debug($"Episode Number: {currFileObj.EndEpisode}");
         logger.Debug($"Overview: {currFileObj.Overview}");
         logger.Debug($"ImageInfo: {currFileObj.PosterPath}");
         logger.Debug($"Filepath: {currFileObj.Filename}");
@@ -343,6 +355,7 @@ public class Scraper
         currFileObj.Filename = movie.Path;
         currFileObj.Title = movie.Name;
         currFileObj.Episode = -1;
+        currFileObj.EndEpisode = -1;
         currFileObj.Season = -1;
         currFileObj.Album = string.Empty;
         currFileObj.Overview = movie.Overview;
@@ -375,6 +388,7 @@ public class Scraper
         currFileObj.Filename = album.Path;
         currFileObj.Title = artist.Name;
         currFileObj.Episode = -1;
+        currFileObj.EndEpisode = -1;
         currFileObj.Season = -1;
         currFileObj.Album = album.Name;
         currFileObj.Overview = string.Empty;

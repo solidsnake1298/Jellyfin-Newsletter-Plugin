@@ -192,6 +192,7 @@ public class HtmlBuilder
                 Title = itemObj.Title,
                 Season = itemObj.Season,
                 Episode = itemObj.Episode,
+                EndEpisode = itemObj.EndEpisode,
                 Type = itemObj.Type
             };
 
@@ -209,7 +210,7 @@ public class HtmlBuilder
         var count = 1;
         foreach (var item in SortListBySeason(SortListByEpisode(compiledList)))
         {
-            logger.Debug("After Sort in foreach: Season::" + item.Season + "; Episode::" + item.Episode);
+            logger.Debug("After Sort in foreach: Season::" + item.Season + "; Episode::" + item.Episode + "; EndEpisode::" + item.EndEpisode);
             logger.Debug("Count/list_len: " + count + "/" + listLen);
             currSeriesDetailsObj.Title = item.Title;
 
@@ -260,7 +261,22 @@ public class HtmlBuilder
             {
                 // logger.Debug("AddCurrentSeason()");
                 logger.Debug("Seasons Match " + currSeason + "::" + item.Season);
-                tempEpsList.Add(item.Episode);
+                if (item.EndEpisode != 0)
+                {
+                    logger.Debug("Multi-episode file: Episodes " + item.Episode + " to " + item.EndEpisode);
+                    var epCount = 0;
+                    var epDiff = item.EndEpisode - item.Episode;
+                    while (epCount <= epDiff)
+                    {
+                        var curEp = item.Episode + epCount;
+                        tempEpsList.Add(curEp);
+                        epCount++;
+                    }
+                }
+                else
+                {
+                    tempEpsList.Add(item.Episode);
+                }
             }
 
             void EndOfSeason()
@@ -382,7 +398,22 @@ public class HtmlBuilder
                 currSeriesDetailsObj.Season = currSeason = item.Season;
                 currSeriesDetailsObj.Type = item.Type;
                 newSeason = false;
-                tempEpsList.Add(item.Episode);
+                if (item.EndEpisode != 0)
+                {
+                    logger.Debug("Multi-episode file: Episodes " + item.Episode + " to " + item.EndEpisode);
+                    var epCount = 0;
+                    var epDiff = item.EndEpisode - item.Episode;
+                    while (epCount <= epDiff)
+                    {
+                        var curEp = item.Episode + epCount;
+                        tempEpsList.Add(curEp);
+                        epCount++;
+                    }
+                }
+                else
+                {
+                    tempEpsList.Add(item.Episode);
+                }
             }
         }
 
