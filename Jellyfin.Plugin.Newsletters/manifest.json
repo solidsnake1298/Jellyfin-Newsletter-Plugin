@@ -13,7 +13,7 @@
                 "changelog": "- Correctly parse files that contain multiple episodes.\n",
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.3.0.0/newsletters_1.3.0.0.zip",
-                "checksum": "d3ab2e4b106a11980303bb0ed42bd940",
+                "checksum": "977a1c502d754b895284aca0a1ebd59f",
                 "timestamp": "2026-05-13T17:51:29Z"
             },
             {
