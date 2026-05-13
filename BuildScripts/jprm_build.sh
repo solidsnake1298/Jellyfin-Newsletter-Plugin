@@ -75,6 +75,6 @@ echo "Contents in ${zipfile}"
 unzip -l ${zipfile}
 newChecksum=$(md5sum "${zipfile}" | awk '{print $1}')
 echo "New checksum:: ${newChecksum}"
-sed -i "s/github.com\/solidsnake1298\/Jellyfin-Newsletter-Plugin\/releases\/download\/newsletters/github.com\/solidsnake1298\/Jellyfin-Newsletter-Plugin\/releases\/download\/v${VERSION}/g" manifest.json
+sed -i "s/github.com\/thedreaddpirate\/Jellyfin-Newsletter-Plugin\/releases\/download\/newsletters/github.com\/thedreaddpirate\/Jellyfin-Newsletter-Plugin\/releases\/download\/v${VERSION}/g" manifest.json
 sed -i "s/$oldChecksum/$newChecksum/g" manifest.json
 exit $rc

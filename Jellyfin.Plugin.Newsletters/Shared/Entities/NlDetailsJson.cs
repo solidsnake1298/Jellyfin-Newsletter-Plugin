@@ -12,6 +12,7 @@ public class NlDetailsJson
         Season = 0;
         Album = string.Empty;
         Episode = 0;
+        EndEpisode = 0;
         EpisodeRange = string.Empty;
         Type = string.Empty;
     }
@@ -23,6 +24,8 @@ public class NlDetailsJson
     public string Album { get; set; }
 
     public int Episode { get; set; }
+
+    public int EndEpisode { get; set; }
 
     public string EpisodeRange { get; set; }
 

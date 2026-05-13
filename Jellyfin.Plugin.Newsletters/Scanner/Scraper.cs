@@ -277,13 +277,14 @@ public class Scraper
                     try
                     {
                         db.ExecuteSql(
-                            "INSERT INTO NewsletterData (Filename, Title, Album, Season, Episode, Overview, ItemID, PosterPath, Type, Emailed) " +
+                            "INSERT INTO NewsletterData (Filename, Title, Album, Season, Episode, EndEpisode, Overview, ItemID, PosterPath, Type, Emailed) " +
                             "VALUES (" +
                             SanitizeDbItem(currFileObj.Filename) +
                             "," + SanitizeDbItem(currFileObj.Title) +
                             "," + SanitizeDbItem(currFileObj.Album) +
                             "," + currFileObj.Season +
                             "," + currFileObj.Episode +
+                            "," + currFileObj.EndEpisode +
                             "," + SanitizeDbItem(currFileObj.Overview) +
                             "," + SanitizeDbItem(currFileObj.ItemId) +
                             "," + SanitizeDbItem(currFileObj.PosterPath) +
@@ -354,6 +355,7 @@ public class Scraper
         currFileObj.Filename = movie.Path;
         currFileObj.Title = movie.Name;
         currFileObj.Episode = -1;
+        currFileObj.EndEpisode = -1;
         currFileObj.Season = -1;
         currFileObj.Album = string.Empty;
         currFileObj.Overview = movie.Overview;
@@ -386,6 +388,7 @@ public class Scraper
         currFileObj.Filename = album.Path;
         currFileObj.Title = artist.Name;
         currFileObj.Episode = -1;
+        currFileObj.EndEpisode = -1;
         currFileObj.Season = -1;
         currFileObj.Album = album.Name;
         currFileObj.Overview = string.Empty;

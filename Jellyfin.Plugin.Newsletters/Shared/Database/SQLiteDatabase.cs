@@ -39,6 +39,7 @@ public class SqLiteDatabase
                 logger.Info("Database not initialized.  Creating tables and migrating any existing or legacy data...");
                 CreateTables();
                 MigrateTables();
+                InitializeEndEpisode();
                 logger.Info("Done database init...");
             }
             else
@@ -189,7 +190,6 @@ public class SqLiteDatabase
             }
             catch (SQLiteException sle)
             {
-                // logger.Warn(sle);
                 logger.Debug(sle);
             }
         }
@@ -226,6 +226,18 @@ public class SqLiteDatabase
         catch
         {
             logger.Debug("Legacy tables aren't present.");
+        }
+    }
+
+    private void InitializeEndEpisode()
+    {
+        try
+        {
+            ExecuteSql("UPDATE NewsletterData SET EndEpisode = 0 WHERE EndEpisode is null;");
+        }
+        catch
+        {
+            logger.Debug("EndEpisode column not present.");
         }
     }
 
