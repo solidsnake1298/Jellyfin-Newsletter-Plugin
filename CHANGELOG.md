@@ -1,3 +1,6 @@
+# 1.3.0.0
+- Correctly parse files that contain multiple episodes.
+
 # 1.2.0.0
 - Use DTO service to retrieve season BaseItem when libManager returns null.  This happens when episodes are located directly in the series folder.
 
