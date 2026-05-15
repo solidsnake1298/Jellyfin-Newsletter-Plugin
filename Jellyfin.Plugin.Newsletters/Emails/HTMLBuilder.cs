@@ -261,7 +261,7 @@ public class HtmlBuilder
             {
                 // logger.Debug("AddCurrentSeason()");
                 logger.Debug("Seasons Match " + currSeason + "::" + item.Season);
-                if (item.EndEpisode != 0)
+                if (item.EndEpisode > 0)
                 {
                     logger.Debug("Multi-episode file: Episodes " + item.Episode + " to " + item.EndEpisode);
                     var epCount = 0;
@@ -398,7 +398,7 @@ public class HtmlBuilder
                 currSeriesDetailsObj.Season = currSeason = item.Season;
                 currSeriesDetailsObj.Type = item.Type;
                 newSeason = false;
-                if (item.EndEpisode != 0)
+                if (item.EndEpisode > 0)
                 {
                     logger.Debug("Multi-episode file: Episodes " + item.Episode + " to " + item.EndEpisode);
                     var epCount = 0;

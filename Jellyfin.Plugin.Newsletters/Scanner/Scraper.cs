@@ -65,8 +65,6 @@ public class Scraper
         logger.Info("Gathering Data...");
         try
         {
-            db.InitDatabase();
-            db.CreateConnection();
             BuildJsonObjsToCurrScanFile();
         }
         catch (Exception e)
@@ -82,6 +80,76 @@ public class Scraper
         }
 
         return Task.CompletedTask;
+    }
+
+    public Task FirstRun()
+    {
+        try
+        {
+            db.InitDatabase();
+            db.CreateConnection();
+            foreach (var row in db.Query("SELECT COUNT(*) FROM NewsletterData;"))
+            {
+                if (int.TryParse(row[0].ToString(), out var x) && x > 0)
+                {
+                    logger.Debug("First run not needed.  Newsletter already has data.");
+                    db.CloseConnection();
+                    return Task.CompletedTask;
+                }
+                else
+                {
+                    db.CloseConnection();
+                    logger.Info("Initializing the Newsletter database...");
+                    db.CreateConnection();
+                    logger.Info("Populating Newsletter database...");
+                    BuildJsonObjsToCurrScanFile();
+                    logger.Info("Preventing first run items from populating next email");
+                    db.ExecuteSql("UPDATE NewsletterData SET Emailed = 1 WHERE Emailed = 0;");
+                    UpdatePreviousRunTimestamp();
+                    progress.Report(100);
+                    logger.Info("Completed database initialization for first run.");
+                    db.CloseConnection();
+                    return Task.CompletedTask;
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+        catch (Exception e)
+        {
+            logger.Error("First run task failed with error:" + e);
+            db.CloseConnection();
+            return Task.CompletedTask;
+        }
+    }
+
+    public Task ManualFullScrape()
+    {
+        try
+        {
+            db.InitDatabase();
+            db.CreateConnection();
+            logger.Info("Initializing the Newsletter database...");
+            db.CreateConnection();
+            logger.Info("Populating Newsletter database...");
+            db.ExecuteSql("UPDATE PreviousRun SET LastRun = '12/30/2018 00:00:00 AM' WHERE ID = 0;");
+            BuildJsonObjsToCurrScanFile();
+            logger.Info("Preventing manual run items from populating next email");
+            db.ExecuteSql("UPDATE NewsletterData SET Emailed = 1 WHERE Emailed = 0;");
+            UpdatePreviousRunTimestamp();
+            progress.Report(100);
+            logger.Info("Completed database initialization for first run.");
+            db.CloseConnection();
+
+            return Task.CompletedTask;
+        }
+        catch (Exception e)
+        {
+            logger.Error("First run task failed with error:" + e);
+            db.CloseConnection();
+
+            return Task.CompletedTask;
+        }
     }
 
     private void BuildJsonObjsToCurrScanFile()
@@ -181,7 +249,7 @@ public class Scraper
 
                 var path = type == "Album" ? Path.GetDirectoryName(item.Path) : item.Path;
 
-                // Checks if the item was previously processed.  False condition should never happen due to previous checks. 
+                // Checks if the item was previously processed.  True condition can happen if an item was replaced or upgraded.
                 if (InDatabase(SanitizeDbItem(path!)))
                 {
                     logger.Debug($"{path} has already been processed either by Previous or Current Newsletter!");
