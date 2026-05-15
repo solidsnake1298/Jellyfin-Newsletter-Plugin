@@ -1,3 +1,13 @@
+# 1.4.0.1
+- Same as 1.4.0.0, built for Jellyfin 12 and dotnet 10.
+
+# 1.4.0.0
+- Added a manual "full" scrape job.
+- Revamped database init.
+- Added "first run" job for new databases to fully populate with existing library items.
+- Added "black square" image as filler for images that fail to resize.
+- Minor tweaks to multi-episode logic.
+
 # 1.3.1.0
 - Initial Jellyfin 10.12 (12.0) support
 

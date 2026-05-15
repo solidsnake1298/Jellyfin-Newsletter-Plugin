@@ -9,6 +9,14 @@
         "imageUrl": "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png",
         "versions": [
             {
+                "version": "1.4.0.1",
+                "changelog": "- Added a manual \"full\" scrape job. - Revamped database init. - Added \"first run\" job for new databases to fully populate with existing library items. - Added \"black square\" image as filler for images that fail to resize. - Minor tweaks to multi-episode logic.\n",
+                "targetAbi": "10.12.0.0",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.4.0.1/newsletters_1.4.0.1.zip",
+                "checksum": "8768c1ccc2b22274e29709b18f36a96a",
+                "timestamp": "2026-05-15T22:23:20Z"
+            },
+            {
                 "version": "1.4.0.0",
                 "changelog": "- Added a manual \"full\" scrape job. - Revamped database init. - Added \"first run\" job for new databases to fully populate with existing library items. - Added \"black square\" image as filler for images that fail to resize. - Minor tweaks to multi-episode logic.\n",
                 "targetAbi": "10.11.0.0",
