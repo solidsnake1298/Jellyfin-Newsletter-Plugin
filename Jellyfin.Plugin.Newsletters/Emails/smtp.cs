@@ -120,9 +120,26 @@ public class Smtp : ControllerBase
                         fileAttachment.ContentId = itemId;
                         mail.Attachments.Add(fileAttachment);
                     }
-                    catch
+                    catch (Exception e)
                     {
-                        logger.Error("Error generating image attachment.  Null image path?");
+                        logger.Error("Error generating image attachment with message: " + e);
+                        logger.Error("Generating black square as placeholder.");
+                        // Uses series/movie/album artist itemID as HTML content ID tag key
+                        var contentId = JsonConvert.DeserializeObject<ContentIdJson>(row);
+                        var itemId = contentId!.ItemId;
+                        Directory.CreateDirectory(attachmentDir);
+                        // Draws blacksquare as placeholder image
+                        var imageStream = PosterImageHandler.DrawBlackSquare();
+                        var extension = "png";
+                        // Writes black square image to disk, attaches to email
+                        imageStream.Position = 0;
+                        var attachmentPath = $"{attachmentDir}/{itemId}{extension}";
+                        var fileStream = System.IO.File.Create($"{attachmentPath}");
+                        imageStream.CopyTo(fileStream);
+                        fileStream.Close();
+                        var fileAttachment = new Attachment($"{attachmentPath}");
+                        fileAttachment.ContentId = itemId;
+                        mail.Attachments.Add(fileAttachment);
                     }
                 }
                 

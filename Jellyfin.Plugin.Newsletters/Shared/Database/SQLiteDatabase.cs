@@ -34,13 +34,18 @@ public class SqLiteDatabase
         if (!File.Exists(dbLockPath)) // Database is not locked
         {
             CreateConnection();
-            if (CheckTables())
+            var tableStatus = CheckTables();
+            if (tableStatus is 1)
             {
-                logger.Info("Database not initialized.  Creating tables and migrating any existing or legacy data...");
+                logger.Info("Newsletter table does not exist.  Creating tables and migrating any existing or legacy data...");
                 CreateTables();
                 MigrateTables();
-                InitializeEndEpisode();
                 logger.Info("Done database init...");
+            }
+            else if (tableStatus is 2)
+            {
+                logger.Info("Older Newsletter table present.  Adding EndEpisode column...");
+                InitializeEndEpisode();
             }
             else
             {
@@ -70,7 +75,7 @@ public class SqLiteDatabase
         }
     }
 
-    private bool CheckTables()
+    private int CheckTables()
     {
         List<string> nlpColumns =
             ["Filename", "Title", "Album", "Season", "Episode", "EndEpisode", "Overview", "ItemID", "PosterPath", "Type", "Emailed"];
@@ -83,59 +88,25 @@ public class SqLiteDatabase
             {
                 foreach (var column in Query("SELECT name FROM pragma_table_info('NewsletterData');"))
                 {
-                    logger.Debug($"column:: {column[0]}");
                     var isColumnPresent = nlpColumns.Contains(column[0].ToString());
                     if (isColumnPresent)
                     {
-                        logger.Debug($"Column {column} is present.");
+                        logger.Debug($"Column {column[0]} is present.");
                     }
                     else
                     {
-                        return true;
+                        logger.Info($"Column {column[0]} is not present.");
+                        return 2;
                     }   
                 }
             }
             else if (x == 0)
             {
-                return true;
+                return 1;
             }
         }
 
-        foreach (var row in Query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='PreviousRun';"))
-        {
-            logger.Debug($"prPresent:: {row[0].ToString()}");
-            if (int.TryParse(row[0].ToString(), out var x) && x > 0)
-            {
-                foreach (var column in Query("SELECT name FROM pragma_table_info('PreviousRun');"))
-                {
-                    logger.Debug($"column:: {column[0]}");
-                    var isColumnPresent = prColumns.Contains(column[0].ToString());
-                    if (isColumnPresent)
-                    {
-                        logger.Debug($"Column {column} is present.");
-                    }
-                    else
-                    {
-                        return true;
-                    }   
-                }
-            }
-            else if (x == 0)
-            {
-                return true;
-            }
-        }
-
-        foreach (var row in Query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND (name='ArchiveData' OR name='CurrRunData' OR name='CurrNewsletterData');"))
-        {
-            logger.Debug($"legacyPresent:: {row[0].ToString()}");
-            if (int.TryParse(row[0].ToString(), out var x) && x > 0)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return 0;
     }
 
     private void CreateTables()
@@ -173,25 +144,6 @@ public class SqLiteDatabase
         catch
         {
             logger.Debug("PreviousRun already populated.");
-        }
-
-        // Adds new columns for existing tables
-        logger.Info($"Altering DB table: NewsletterData");
-        // <TABLE_NAME, DATA_TYPE>
-        Dictionary<string, string> new_cols = new Dictionary<string, string>();
-        new_cols.Add("EndEpisode", "INT");
-
-        foreach (KeyValuePair<string, string> col in new_cols)
-        {
-            try
-            {
-                logger.Debug($"Adding Table Columns for DB updates...");
-                ExecuteSql($"ALTER TABLE NewsletterData ADD COLUMN {col.Key} {col.Value};");
-            }
-            catch (SQLiteException sle)
-            {
-                logger.Debug(sle);
-            }
         }
     }
     
@@ -231,14 +183,10 @@ public class SqLiteDatabase
 
     private void InitializeEndEpisode()
     {
-        try
-        {
-            ExecuteSql("UPDATE NewsletterData SET EndEpisode = 0 WHERE EndEpisode is null;");
-        }
-        catch
-        {
-            logger.Debug("EndEpisode column not present.");
-        }
+        logger.Debug("Adding EndEpisode column to Newsletter table...");
+        ExecuteSql("ALTER TABLE NewsletterData ADD COLUMN EndEpisode INT;");
+        logger.Debug("Initializing EndEpisode column");
+        ExecuteSql("UPDATE NewsletterData SET EndEpisode = 0 WHERE EndEpisode is null;");
     }
 
     public IEnumerable<IReadOnlyList<ResultSetValue>> Query(string query)
