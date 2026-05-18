@@ -65,6 +65,7 @@ public class Scraper
         logger.Info("Gathering Data...");
         try
         {
+            db.CreateConnection();
             BuildJsonObjsToCurrScanFile();
         }
         catch (Exception e)
@@ -128,8 +129,6 @@ public class Scraper
         try
         {
             db.InitDatabase();
-            db.CreateConnection();
-            logger.Info("Initializing the Newsletter database...");
             db.CreateConnection();
             logger.Info("Populating Newsletter database...");
             db.ExecuteSql("UPDATE PreviousRun SET LastRun = '12/30/2018 00:00:00 AM' WHERE ID = 0;");
