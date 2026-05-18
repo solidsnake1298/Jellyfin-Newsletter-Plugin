@@ -6,8 +6,24 @@
         "overview": "Send newsletters for recently added media",
         "owner": "jellyfin",
         "category": "General",
-        "imageUrl": "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png",
+        "imageUrl": "https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/logo.png",
         "versions": [
+            {
+                "version": "1.4.1.1",
+                "changelog": "- Added db createconnection for standard file scrapper job.  JF 12.0 compatible.\n",
+                "targetAbi": "10.12.0.0",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.4.1.1/newsletters_1.4.1.1.zip",
+                "checksum": "abedb6df8f117ca745de0c5960bfbcc4",
+                "timestamp": "2026-05-18T01:33:38Z"
+            },
+            {
+                "version": "1.4.1.0",
+                "changelog": "- Added db createconnection for standard file scrapper job.\n",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.4.1.0/newsletters_1.4.1.0.zip",
+                "checksum": "742cd698dbbe1a882ff44f24d9daabe4",
+                "timestamp": "2026-05-18T01:28:49Z"
+            },
             {
                 "version": "1.4.0.1",
                 "changelog": "- Added a manual \"full\" scrape job. - Revamped database init. - Added \"first run\" job for new databases to fully populate with existing library items. - Added \"black square\" image as filler for images that fail to resize. - Minor tweaks to multi-episode logic.\n",
