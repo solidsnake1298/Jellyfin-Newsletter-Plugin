@@ -1,3 +1,6 @@
+# 1.5.0.0/1
+- Fixed and revamped database init and migration.
+
 # 1.4.0.1
 - Same as 1.4.0.0, built for Jellyfin 12 and dotnet 10.
 
