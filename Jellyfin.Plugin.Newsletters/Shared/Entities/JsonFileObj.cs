@@ -17,12 +17,12 @@ public class JsonFileObj
         Album = string.Empty;
         Season = 0;
         Episode = 0;
-        EndEpisode = 0;
         Overview = string.Empty;
         ItemId = string.Empty;
         PosterPath = string.Empty;
         Type = string.Empty;
         Emailed = 0;
+        EndEpisode = 0;
     }
 
     public string Filename { get; set; }
@@ -35,8 +35,6 @@ public class JsonFileObj
 
     public int Episode { get; set; }
 
-    public int EndEpisode { get; set; }
-
     public string Overview { get; set; }
 
     public string ItemId { get; set; }
@@ -47,6 +45,8 @@ public class JsonFileObj
 
     public int Emailed { get; set; }
 
+    public int EndEpisode { get; set; }
+
     public JsonFileObj ConvertToObj(IReadOnlyList<ResultSetValue> row)
     {
         var obj = new JsonFileObj()
@@ -56,12 +56,12 @@ public class JsonFileObj
             Album = row[2].ToString(),
             Season = int.Parse(row[3].ToString(), CultureInfo.CurrentCulture),
             Episode = int.Parse(row[4].ToString(), CultureInfo.CurrentCulture),
-            EndEpisode = int.Parse(row[5].ToString(), CultureInfo.CurrentCulture),
-            Overview = row[6].ToString(),
-            ItemId = row[7].ToString(),
-            PosterPath = row[8].ToString(),
-            Type = row[9].ToString(),
-            Emailed = int.Parse(row[10].ToString(), CultureInfo.CurrentCulture)
+            Overview = row[5].ToString(),
+            ItemId = row[6].ToString(),
+            PosterPath = row[7].ToString(),
+            Type = row[8].ToString(),
+            Emailed = int.Parse(row[9].ToString(), CultureInfo.CurrentCulture),
+            EndEpisode = int.Parse(row[10].ToString(), CultureInfo.CurrentCulture)
         };
 
         return obj;
@@ -80,7 +80,8 @@ public class JsonFileObj
             { "{ItemID}", ItemId },
             { "{PosterPath}", PosterPath },
             { "{Type}", Type },
-            { "{ImageURL}", "cid:" + ItemId }
+            { "{ImageURL}", "cid:" + ItemId },
+            { "{EndEpisode}", EndEpisode }
         };
 
         return itemDict;        

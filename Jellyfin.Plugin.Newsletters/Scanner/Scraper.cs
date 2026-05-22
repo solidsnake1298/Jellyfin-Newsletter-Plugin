@@ -65,8 +65,10 @@ public class Scraper
         logger.Info("Gathering Data...");
         try
         {
+            db.InitDatabase();
             db.CreateConnection();
             BuildJsonObjsToCurrScanFile();
+            UpdatePreviousRunTimestamp();
         }
         catch (Exception e)
         {
@@ -74,7 +76,6 @@ public class Scraper
         }
         finally
         {
-            UpdatePreviousRunTimestamp();
             db.CloseConnection();
             progress.Report(100);
             logger.Info("Completed scanning for new items.");
@@ -118,7 +119,7 @@ public class Scraper
         }
         catch (Exception e)
         {
-            logger.Error("First run task failed with error:" + e);
+            logger.Error("First run task failed with error:" + e.Message);
             db.CloseConnection();
             return Task.CompletedTask;
         }

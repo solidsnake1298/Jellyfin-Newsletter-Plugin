@@ -531,7 +531,7 @@ public class HtmlBuilder
     {
         // Updates Emailed column to 1
         db.CreateConnection();
-        db.ExecuteSql("UPDATE NewsletterData SET Emailed = 1 WHERE Emailed = 0;");
+        db.ExecuteSql("UPDATE NewsletterData SET Emailed = 1 WHERE Emailed = 0 OR Emailed IS NULL;");
         db.CloseConnection();
     }
 }

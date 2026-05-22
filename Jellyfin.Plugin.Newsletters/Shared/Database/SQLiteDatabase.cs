@@ -1,4 +1,5 @@
 #pragma warning disable 1591, CA1304
+using System;
 using System.Collections.Generic;
 using System.IO;
 using SQLitePCL;
@@ -35,21 +36,21 @@ public class SqLiteDatabase
         {
             CreateConnection();
             var tableStatus = CheckTables();
-            if (tableStatus is 1)
+            switch (tableStatus)
             {
-                logger.Info("Newsletter table does not exist.  Creating tables and migrating any existing or legacy data...");
-                CreateTables();
-                MigrateTables();
-                logger.Info("Done database init...");
-            }
-            else if (tableStatus is 2)
-            {
-                logger.Info("Older Newsletter table present.  Adding EndEpisode column...");
-                InitializeEndEpisode();
-            }
-            else
-            {
-                logger.Debug("Database already initialized...");
+                case 1:
+                    logger.Info("Newsletter table does not exist.  Creating tables and migrating any existing or legacy data...");
+                    CreateTables();
+                    MigrateLegacyTables();
+                    logger.Info("Done database init...");
+                    break;
+                case 2:
+                    logger.Info("Older Newsletter table present.  Adding EndEpisode column...");
+                    MigrateTables();
+                    break;
+                case 0:
+                    logger.Debug("Database already initialized...");
+                    break;
             }
 
             CloseConnection();
@@ -77,32 +78,28 @@ public class SqLiteDatabase
 
     private int CheckTables()
     {
-        List<string> nlpColumns =
-            ["Filename", "Title", "Album", "Season", "Episode", "EndEpisode", "Overview", "ItemID", "PosterPath", "Type", "Emailed"];
-        List<string> prColumns = 
-            ["ID", "LastRun"];
-        foreach (var row in Query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='NewsletterData';"))
+        foreach (var row in Query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='NewsletterVersion';"))
         {
-            logger.Debug($"nlpPresent:: {row[0].ToString()}");
             if (int.TryParse(row[0].ToString(), out var x) && x > 0)
             {
-                foreach (var column in Query("SELECT name FROM pragma_table_info('NewsletterData');"))
+                logger.Debug("NewsletterVersion table is present.");
+                if (int.TryParse(row[0].ToString(), out var y) && y == 2)
                 {
-                    var isColumnPresent = nlpColumns.Contains(column[0].ToString());
-                    if (isColumnPresent)
-                    {
-                        logger.Debug($"Column {column[0]} is present.");
-                    }
-                    else
-                    {
-                        logger.Info($"Column {column[0]} is not present.");
-                        return 2;
-                    }   
+                    logger.Debug("NewsletterDB is the latest version.");
+                    return 0;
                 }
             }
             else if (x == 0)
             {
-                return 1;
+                logger.Debug("NewsletterVersion table is not present, checking for NewsletterData table...");
+                foreach (var row2 in Query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='NewsletterData';"))
+                {
+                    if (int.TryParse(row2[0].ToString(), out var y) && y > 0)
+                    {
+                        logger.Info("Migrating v1 table to v2 table.");
+                        return 2;
+                    }
+                }
             }
         }
 
@@ -134,12 +131,19 @@ public class SqLiteDatabase
                 "BEGIN " +
                 "SELECT RAISE(FAIL, 'Only one row allowed!'); " +
                 "END;");
+        ExecuteSql("CREATE TABLE IF NOT EXISTS NewsletterVersion (" +
+                "ID INTEGER NOT NULL," +
+                "TableVersion INTEGER," +
+                "PRIMARY KEY (ID));");
         // Initializes table with default value.  Skips if row is already present.
         try
         {
             ExecuteSql("INSERT OR IGNORE INTO PreviousRun (" +
                 "ID,LastRun) " +
                 "VALUES (0,'12/30/2018 00:00:00 AM');");
+            ExecuteSql("INSERT OR IGNORE INTO NewsletterVersion (" +
+                "ID,TableVersion) " +
+                "VALUES (0, 2);");
         }
         catch
         {
@@ -147,7 +151,7 @@ public class SqLiteDatabase
         }
     }
     
-    private void MigrateTables()
+    private void MigrateLegacyTables()
     {
         try
         {
@@ -173,6 +177,7 @@ public class SqLiteDatabase
             ExecuteSql("DROP TABLE IF EXISTS CurrRunData");
             ExecuteSql("DROP TABLE IF EXISTS CurrNewsletterData");
             ExecuteSql("DROP TABLE IF EXISTS ArchiveData");
+            ExecuteSql("UPDATE NewsletterData SET Emailed = 1 WHERE Emailed IS NULL;");
             logger.Debug("Legacy tables successfully migrated.");
         }
         catch
@@ -181,12 +186,46 @@ public class SqLiteDatabase
         }
     }
 
-    private void InitializeEndEpisode()
+    private void MigrateTables()
     {
-        logger.Debug("Adding EndEpisode column to Newsletter table...");
-        ExecuteSql("ALTER TABLE NewsletterData ADD COLUMN EndEpisode INT;");
-        logger.Debug("Initializing EndEpisode column");
-        ExecuteSql("UPDATE NewsletterData SET EndEpisode = 0 WHERE EndEpisode is null;");
+        foreach (var row in Query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='NewsletterVersion';"))
+        {
+            if (int.TryParse(row[0].ToString(), out var x) && x == 0)
+            {
+                    logger.Debug("v1 to v2 migration: Adding EndEpisode column to Newsletter table...");
+                    ExecuteSql("ALTER TABLE NewsletterData ADD COLUMN EndEpisode INT;");
+                    logger.Debug("Initializing EndEpisode column");
+                    ExecuteSql("UPDATE NewsletterData SET EndEpisode = 0 WHERE EndEpisode is null;");
+                    try
+                    {
+                        ExecuteSql("CREATE TABLE IF NOT EXISTS NewsletterVersion (" +
+                                "ID INTEGER NOT NULL," +
+                                "TableVersion INTEGER," +
+                                "PRIMARY KEY (ID));");
+                        ExecuteSql("INSERT OR IGNORE INTO NewsletterVersion (" +
+                                "ID,TableVersion) " +
+                                "VALUES (0, 2);");
+                    }
+                    catch
+                    {
+                        logger.Error("Could not initialize NewsletterVersion table.");
+                    }
+            }
+
+            // Placeholder for future versions
+            //else if (x == 1)
+            //{
+            //    foreach (var row in Query("SELECT TableVersion from NewsletterVersion WHERE ID = 0;"))
+            //    {
+            //        var tableVersion = row[0].ToString();
+            //        if (int.TryParse(row[0].ToString(), out var x) && x == 1)
+            //        {
+            //            logger.Info("Migrating v2 table to v3 table.");
+            //            return 2;
+            //        }
+            //    }
+            //}
+        }
     }
 
     public IEnumerable<IReadOnlyList<ResultSetValue>> Query(string query)
