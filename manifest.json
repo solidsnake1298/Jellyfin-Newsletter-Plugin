@@ -9,6 +9,7 @@
         "imageUrl": "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png",
         "versions": [
             {
+<<<<<<< HEAD
                 "version": "1.5.0.1",
                 "changelog": "- Fixed and revamped database init and migrations.\n",
                 "targetAbi": "10.12.0.0",
@@ -17,6 +18,8 @@
                 "timestamp": "2026-05-22T16:32:11Z"
             },
             {
+=======
+>>>>>>> 099ad69 (v1.5.0.0 manifest)
                 "version": "1.5.0.0",
                 "changelog": "- Fixed and revamped database init and migrations.\n",
                 "targetAbi": "10.11.0.0",
