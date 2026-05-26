@@ -13,6 +13,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
+using MusicAlbum = MediaBrowser.Controller.Entities.Audio.MusicAlbum;
 using TVEntity = MediaBrowser.Controller.Entities.TV;
 
 namespace Jellyfin.Plugin.Newsletters.Scanner;
@@ -313,6 +314,18 @@ public class Scraper
                         {
                             logger.Debug($"Found Album");
                             BaseItem artist = item.FindParent<MusicArtist>();
+                            if (artist is null)
+                            {
+                                logger.Info("Could not find album artist.  Using DTO service to retrieve artist...");
+                                MusicAlbum musicAlbum = (MusicAlbum)item;
+                                artist = musicAlbum.GetMusicArtist(new DtoOptions(false));
+                                if (artist is null)
+                                {
+                                    logger.Error("DTO service couldn't retrieve an artist BaseItem.  Skipping...");
+                                    continue;
+                                }
+                            }
+                            
                             currFileObj.Type = type;
                             currFileObj = MusicObj(item, artist, currFileObj);
                             break;
