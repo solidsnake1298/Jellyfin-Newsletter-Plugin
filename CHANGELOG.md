@@ -1,3 +1,6 @@
+# 1.5.1.0/1
+- Fixed databse init, added DTO lookup for albums when default lookup fails.
+
 # 1.5.0.0/1
 - Fixed and revamped database init and migration.
 
