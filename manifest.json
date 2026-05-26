@@ -24,6 +24,7 @@
                 "checksum": "26ec8b78e492438833c5aa1347edb00f",
                 "timestamp": "2026-05-22T16:32:11Z"
             },
+            {
                 "version": "1.5.0.0",
                 "changelog": "- Fixed and revamped database init and migrations.\n",
                 "targetAbi": "10.11.0.0",
