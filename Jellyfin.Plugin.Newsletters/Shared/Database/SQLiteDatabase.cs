@@ -99,6 +99,10 @@ public class SqLiteDatabase
                         logger.Info("Migrating v1 table to v2 table.");
                         return 2;
                     }
+                    else
+                    {
+                        return 1;
+                    }
                 }
             }
         }
