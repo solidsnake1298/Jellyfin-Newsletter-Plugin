@@ -9,12 +9,20 @@
         "imageUrl": "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png",
         "versions": [
             {
+                "version": "1.5.2.0",
+                "changelog": "- Fixed album parsing when only one album added.\n",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.5.2.0/newsletters_1.5.2.0.zip",
+                "checksum": "10b73bf3b0526e44f0a621d5a753c69f",
+                "timestamp": "2026-06-01T20:02:49Z"
+            },
+            {
                 "version": "1.5.1.0",
                 "changelog": "- Fixed databse init, added DTO lookup for albums when default lookup fails.\n",
                 "targetAbi": "10.11.0.0",
                 "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.5.1.0/newsletters_1.5.1.0.zip",
-                "checksum": "dd1d155ab341b5ab5f32f8946a494caf",
-                "timestamp": "2026-05-26T17:52:15Z"
+                "checksum": "0feabe8c5e2dc5ba8b58c926d2d1b09e",
+                "timestamp": "2026-06-01T20:01:16Z"
             },
             {
                 "version": "1.5.0.0",
