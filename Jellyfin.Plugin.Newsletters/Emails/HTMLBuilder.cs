@@ -476,7 +476,7 @@ public class HtmlBuilder
             }
 
             logger.Debug("CurrItem Album: " + item.Album);
-            if (count < listLen)
+            if (count <= listLen)
             {
                 AddNewAlbum();
             }
