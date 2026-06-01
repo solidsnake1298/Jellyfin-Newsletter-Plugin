@@ -9,12 +9,36 @@
         "imageUrl": "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png",
         "versions": [
             {
-                "version": "1.5.0.1",
-                "changelog": "- Fixed and revamped database init and migrations.\n",
+                "version": "1.5.2.1",
+                "changelog": "- Fixed album parsing when only one album added.\n",
                 "targetAbi": "10.12.0.0",
-                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.5.0.1/newsletters_1.5.0.1.zip",
-                "checksum": "26ec8b78e492438833c5aa1347edb00f",
-                "timestamp": "2026-05-22T16:32:11Z"
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.5.2.1/newsletters_1.5.2.1.zip",
+                "checksum": "e0aeed405224e765c6fca9b3867d0107",
+                "timestamp": "2026-06-01T20:05:35Z"
+            },
+            {
+                "version": "1.5.1.1",
+                "changelog": "- Fixed databse init, added DTO lookup for albums when default lookup fails.\n",
+                "targetAbi": "10.12.0.0",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.5.1.1/newsletters_1.5.1.1.zip",
+                "checksum": "c1ad5b5e950f3694cf02c45ee852ea60",
+                "timestamp": "2026-05-28T16:04:31Z"
+            },
+            {
+                "version": "1.5.1.0",
+                "changelog": "- Fixed databse init, added DTO lookup for albums when default lookup fails.\n",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.5.1.0/newsletters_1.5.1.0.zip",
+                "checksum": "dd1d155ab341b5ab5f32f8946a494caf",
+                "timestamp": "2026-05-26T17:52:15Z"
+            },
+            {
+                "version": "1.5.0.0",
+                "changelog": "- Fixed and revamped database init and migrations.\n",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.5.0.0/newsletters_1.5.0.0.zip",
+                "checksum": "30b410a08a2b455e0925c8a5d3a5feb2",
+                "timestamp": "2026-05-22T16:21:29Z"
             },
             {
                 "version": "1.4.1.1",

@@ -2,7 +2,7 @@
 name: "Newsletters"
 guid: "60f478ab-2dd6-4ea0-af10-04d033f75979"
 imageUrl: "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png"
-version: "1.5.0.1"
+version: "1.5.2.1"
 targetAbi: "10.12.0.0"
 framework: "net10.0"
 overview: "Send newsletters for recently added media"
@@ -13,5 +13,5 @@ artifacts:
   - "Jellyfin.Plugin.Newsletters.dll"
   - "SQLitePCL.pretty.dll"
 changelog: >
-  - Fixed and revamped database init and migrations.
+  - Fixed album parsing when only one album added.
 FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md
