@@ -1,3 +1,6 @@
+# 1.5.2.0/1
+- Fixed album parsing when only one album added.
+
 # 1.5.1.0/1
 - Fixed database init, added DTO lookup for albums when default lookup fails.
 
