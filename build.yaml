@@ -1,5 +1,5 @@
 ---
-name: "Newsletters"
+name: "Newsletters Redux"
 guid: "60f478ab-2dd6-4ea0-af10-04d033f75979"
 imageUrl: "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png"
 version: "1.5.1.1"
