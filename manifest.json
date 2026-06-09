@@ -1,12 +1,12 @@
 [
     {
         "guid": "60f478ab-2dd6-4ea0-af10-04d033f75979",
-        "name": "Newsletters",
+        "name": "Newsletters Redux",
         "description": "This plugin automacially scans a users library (default every 4 hours), populates a list of recently added (not previously scanned) media, converts that data into HTML format, and sends out emails to a provided list of recipients.",
         "overview": "Send newsletters for recently added media",
         "owner": "jellyfin",
         "category": "General",
-        "imageUrl": "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png",
+        "imageUrl": "https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/logo.png",
         "versions": [
             {
                 "version": "1.5.2.1",
@@ -100,7 +100,7 @@
                 "version": "1.2.0.0",
                 "changelog": "- Use DTO service to retrieve season BaseItem when libManager returns null.\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v1.2.0.0/newsletters_1.2.0.0.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.2.0.0/newsletters_1.2.0.0.zip",
                 "checksum": "b0d4b2b07fc63322d93563f627bb8189",
                 "timestamp": "2025-11-26T19:02:47Z"
             },
@@ -108,7 +108,7 @@
                 "version": "1.1.0.3",
                 "changelog": "- Add dispose for smtp and mailmessage to prevent resource leaks.\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v1.1.0.3/newsletters_1.1.0.3.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.1.0.3/newsletters_1.1.0.3.zip",
                 "checksum": "d8d96213379776053fc52568677473a3",
                 "timestamp": "2025-11-26T15:22:47Z"
             },
@@ -116,7 +116,7 @@
                 "version": "1.1.0.2",
                 "changelog": "- Code cleanup, apply best practices, remove duplicate null checks, improve logging.\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v1.1.0.2/newsletters_1.1.0.2.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.1.0.2/newsletters_1.1.0.2.zip",
                 "checksum": "5378c2b4473e043b918af19c376081a6",
                 "timestamp": "2025-11-25T20:06:21Z"
             },
@@ -124,119 +124,119 @@
                 "version": "1.1.0.1",
                 "changelog": "- Fixed error regarding writing HTML file.  OBE, removed. - Added DB table check.  Only init when tables aren't present. - Ensured short lived DB connections.\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v1.1.0.1/newsletters_1.1.0.1.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.1.0.1/newsletters_1.1.0.1.zip",
                 "checksum": "a4c0526f215f3f0b82ed186f4173bd1d",
                 "timestamp": "2025-11-24T17:54:39Z"
             },
             {
                 "version": "1.1.0.0",
-                "changelog": "- Code cleanup. Adding tracker for \"last successful run\". Use tracker to set MinLastDateSaved in calls to Jellyfin library manager to only retrieve new library items. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- Code cleanup. Adding tracker for \"last successful run\". Use tracker to set MinLastDateSaved in calls to Jellyfin library manager to only retrieve new library items. FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v1.1.0.0/newsletters_1.1.0.0.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.1.0.0/newsletters_1.1.0.0.zip",
                 "checksum": "be797c779db3394cea00fda5dad17ab2",
                 "timestamp": "2025-11-20T14:45:06Z"
             },
             {
                 "version": "1.0.0.2",
-                "changelog": "- Code cleanup.  Add logic to avoid unnecessary processing for invalid data.  Address compiler warnings for null dereferences. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- Code cleanup.  Add logic to avoid unnecessary processing for invalid data.  Address compiler warnings for null dereferences. FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v1.0.0.2/newsletters_1.0.0.2.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.0.0.2/newsletters_1.0.0.2.zip",
                 "checksum": "ec77dec22b7511bc8042d1ddec3a52a3",
                 "timestamp": "2025-11-18T19:31:54Z"
             },
             {
                 "version": "1.0.0.1",
-                "changelog": "- If imgPath is null, replace with black square.  Unlikely with proper content, possible with liveTV content. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- If imgPath is null, replace with black square.  Unlikely with proper content, possible with liveTV content. FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v1.0.0.1/newsletters_1.0.0.1.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.0.0.1/newsletters_1.0.0.1.zip",
                 "checksum": "8803b412ba7ecd2c01b891a87af24fd6",
                 "timestamp": "2025-11-15T00:27:39Z"
             },
             {
                 "version": "1.0.0.0",
-                "changelog": "- Fixed numbering for seasons that had multiple versions of an episode. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- Fixed numbering for seasons that had multiple versions of an episode. FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v1.0.0.0/newsletters_1.0.0.0.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.0.0.0/newsletters_1.0.0.0.zip",
                 "checksum": "537af20687439c40d07274aee6429899",
                 "timestamp": "2025-11-12T16:33:38Z"
             },
             {
                 "version": "0.9.5.0",
-                "changelog": "- Fixed attached/embedded images.  Cleaned up templates. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- Fixed attached/embedded images.  Cleaned up templates. FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.9.5.0/newsletters_0.9.5.0.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v0.9.5.0/newsletters_0.9.5.0.zip",
                 "checksum": "fabca8eb1c79bd49bbf766eccc4ba851",
                 "timestamp": "2025-11-10T23:35:56Z"
             },
             {
                 "version": "0.9.0.1",
-                "changelog": "- Removing JFHosting and Imgur URL hosting in favor of embedded base64 encoded images. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- Removing JFHosting and Imgur URL hosting in favor of embedded base64 encoded images. FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.9.0.1/newsletters_0.9.0.1.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v0.9.0.1/newsletters_0.9.0.1.zip",
                 "checksum": "7c7c99f80a71ea7dd2ff1a17bd1c903b",
                 "timestamp": "2025-11-10T22:35:38Z"
             },
             {
                 "version": "0.9.0.0",
-                "changelog": "- Removing JFHosting and Imgur URL hosting in favor of embedded base64 encoded images. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- Removing JFHosting and Imgur URL hosting in favor of embedded base64 encoded images. FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.9.0.0/newsletters_0.9.0.0.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v0.9.0.0/newsletters_0.9.0.0.zip",
                 "checksum": "553d922236dca3dd627e432119899871",
                 "timestamp": "2025-11-10T15:58:41Z"
             },
             {
                 "version": "0.8.0.0",
-                "changelog": "- Music support added.  Working on fixed dupes in Albums and episodes. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- Music support added.  Working on fixed dupes in Albums and episodes. FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.8.0.0/newsletters_0.8.0.0.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v0.8.0.0/newsletters_0.8.0.0.zip",
                 "checksum": "093c26c4584692a16d99f21a3b099b80",
                 "timestamp": "2025-11-09T20:45:32Z"
             },
             {
                 "version": "0.7.0.6",
-                "changelog": "- Fixed Series poster.  Added debugging lines to troubleshoot music scraping the library folder.  Replaced SeriesOverview in HTML builder and templates with new Overview. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- Fixed Series poster.  Added debugging lines to troubleshoot music scraping the library folder.  Replaced SeriesOverview in HTML builder and templates with new Overview. FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.6/newsletters_0.7.0.6.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.6/newsletters_0.7.0.6.zip",
                 "checksum": "e5177bdf5bf7aa0437439656bdee354d",
                 "timestamp": "2025-11-08T03:22:53Z"
             },
             {
                 "version": "0.7.0.5",
-                "changelog": "- Fix JSON object creation.  Fix DB table creation. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- Fix JSON object creation.  Fix DB table creation. FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.5/newsletters_0.7.0.5.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.5/newsletters_0.7.0.5.zip",
                 "checksum": "103600845a2335f4661f94d8e8e17bd1",
                 "timestamp": "2025-11-05T16:19:19Z"
             },
             {
                 "version": "0.7.0.4",
-                "changelog": "- Sanatize album DB item when empty FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- Sanatize album DB item when empty FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.4/newsletters_0.7.0.4.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.4/newsletters_0.7.0.4.zip",
                 "checksum": "6ed0ea44cce8e84f54ca253b5fd31cbc",
                 "timestamp": "2025-11-05T15:27:42Z"
             },
             {
                 "version": "0.7.0.3",
-                "changelog": "- JSON object fixes FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- JSON object fixes FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.3/newsletters_0.7.0.3.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.3/newsletters_0.7.0.3.zip",
                 "checksum": "4282f778285187574d1406c2190b9767",
                 "timestamp": "2025-11-05T15:04:16Z"
             },
             {
                 "version": "0.7.0.2",
-                "changelog": "- SQL syntax error fix FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- SQL syntax error fix FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.2/newsletters_0.7.0.2.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.2/newsletters_0.7.0.2.zip",
                 "checksum": "3733ba8d0f369581d1ce7fcb860898b2",
                 "timestamp": "2025-11-05T14:50:35Z"
             },
             {
                 "version": "0.7.0.1",
-                "changelog": "- Added music support. FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
+                "changelog": "- Added music support. FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md\n",
                 "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/solidsnake1298/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.1/newsletters_0.7.0.1.zip",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v0.7.0.1/newsletters_0.7.0.1.zip",
                 "checksum": "016c02e48fbac3a072b7a5312da8f120",
                 "timestamp": "2025-11-05T00:04:23Z"
             }
