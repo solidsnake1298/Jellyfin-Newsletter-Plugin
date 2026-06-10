@@ -11,10 +11,19 @@ This plugin automacially scans a user\'s library (default every hour), populates
     <img src='https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/blob/master/NewsletterExample.png?raw=true'/><br>
 </p>
 
+# Notable Changes
+- Reworked the database structure
+- Embeds poster images directly into the email instead of imgur/self-hosted ref links
+- Scanner only retrieves new items added to your library since the last scan
+- Scanner is more flexible and has some tolerance for non-compliant library folder structures
+- Music support at the album level
+- Detects multi-episode files.  Previously multi-episode files caused some jankiness in the email.
+- Additional jobs for "first run" database initialization (fully scans library, but won't be included in next email)
+
 # File Structure
 To ensure proper images are being pulled from Jellyfin's database, ensure you follow the standard Organization Scheme for naming and organizing your files. https://jellyfin.org/docs/general/server/media/shows
 
-If this format isn't followed properly, Jellyfin may have issue correctly saving the item's data in the proper database (the database that this plugin uses).
+While this fork has improvements to the scanner that can tolerant folder structures that doesn't strictly follow Jellyfin's documentation, I still recommend adhering to Jellyfin's recommended folder structure and file naming schemes.  If this format isn't followed properly, Jellyfin may have issue correctly saving the item's data in the proper database (the database that this plugin uses).
 
 ```
 Shows
@@ -88,7 +97,7 @@ Testing and Frequency can be managed through your Dashboard > Scheduled Tasks
 
 - There are 2 scheduled tasks:
     - Email Newsletter (weekly): Which generates and sends out the newsletters via email from the data scanned from the task below
-    - Filesystem Scraper (hourly):  Which scans your library, parses the data, and gets it ready for the email
+    - Filesystem Scraper (weekly):  Which scans your library, parses the data, and gets it ready for the email
 
 # Installation
 
@@ -99,7 +108,7 @@ Manifest is up an running! You can now import the manifest in Jellyfin and this 
     - Give it a name (i.e. Newsletters)
     - In "Repository URL," put "https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/manifest.json"
     - Click "Save"
-- You should now see Jellyfin Newsletters in Catalog under the Category "Newsletters"
+- You should now see Jellyfin Newsletters in Catalog under the Category "General"
 - Once installed, restart Jellyfin to activate the plugin and configure your settings for the plugin
 
 # Configuration
@@ -131,14 +140,6 @@ For defaults, see `Jellyfin.Plugin.Newsletters/Templates/`
 
 ### EntryData HTML
 - The formatting for each individual entry/series/movie that was found and will be sent out
-
-## Scraper/Scanner Config
-
-### Poster Hosting Type
-- Obsolete.  All images are resized and attached to the outgoing email.  ImageURL now uses the content ID of the attachment.
-
-### Hostname
-- Obsolete.  No longer used.
 
 ## SMTP Config
 
