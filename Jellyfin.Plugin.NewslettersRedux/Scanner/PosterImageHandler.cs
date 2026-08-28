@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using SkiaSharp;
 
-namespace Jellyfin.Plugin.Newsletters.Scanner;
+namespace Jellyfin.Plugin.NewslettersRedux.Scanner;
 
 public static class PosterImageHandler
 {

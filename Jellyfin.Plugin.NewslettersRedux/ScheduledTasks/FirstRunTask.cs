@@ -3,24 +3,24 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Plugin.Newsletters.Scanner;
+using Jellyfin.Plugin.NewslettersRedux.Scanner;
 using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Tasks;
 
-namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
+namespace Jellyfin.Plugin.NewslettersRedux.ScheduledTasks
 {
     /// <summary>
     /// Class RefreshMediaLibraryTask.
     /// </summary>
-    public class ScanLibraryTask : IScheduledTask
+    public class FirstRunTask : IScheduledTask
     {
         private readonly ILibraryManager libraryManager;
         private readonly IRecordingsManager recordingManager;
         private readonly IDtoService dtoService;
 
-        public ScanLibraryTask(ILibraryManager libraryManager, IRecordingsManager recordingManager, IDtoService dtoService)
+        public FirstRunTask(ILibraryManager libraryManager, IRecordingsManager recordingManager, IDtoService dtoService)
         {
             this.libraryManager = libraryManager;
             this.recordingManager = recordingManager;
@@ -28,10 +28,10 @@ namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
         }
 
         /// <inheritdoc />
-        public string Name => "Filesystem Scraper";
+        public string Name => "First Run Scraper";
 
         /// <inheritdoc />
-        public string Description => "Gather info on recently added media and store it for Newsletters";
+        public string Description => "Populates Newsletter database with existing library content";
 
         /// <inheritdoc />
         public string Category => "Newsletters";
@@ -47,9 +47,7 @@ namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
         {
             yield return new TaskTriggerInfo
             {
-                // Type = TaskTriggerInfo.Type,
-                Type = TaskTriggerInfoType.IntervalTrigger,
-                IntervalTicks = TimeSpan.FromHours(1).Ticks
+                Type = TaskTriggerInfoType.StartupTrigger
             };
         }
 
@@ -60,7 +58,7 @@ namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
             progress.Report(0);
 
             var myScraper = new Scraper(libraryManager, recordingManager, dtoService, progress);
-            return myScraper.GetNewsletterData();
+            return myScraper.FirstRun();
         }
     }
 }

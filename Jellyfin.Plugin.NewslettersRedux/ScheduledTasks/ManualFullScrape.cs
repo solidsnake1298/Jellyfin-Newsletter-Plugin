@@ -3,24 +3,24 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Plugin.Newsletters.Scanner;
+using Jellyfin.Plugin.NewslettersRedux.Scanner;
 using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Tasks;
 
-namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
+namespace Jellyfin.Plugin.NewslettersRedux.ScheduledTasks
 {
     /// <summary>
     /// Class RefreshMediaLibraryTask.
     /// </summary>
-    public class FirstRunTask : IScheduledTask
+    public class ManualFullScrape : IScheduledTask
     {
         private readonly ILibraryManager libraryManager;
         private readonly IRecordingsManager recordingManager;
         private readonly IDtoService dtoService;
 
-        public FirstRunTask(ILibraryManager libraryManager, IRecordingsManager recordingManager, IDtoService dtoService)
+        public ManualFullScrape(ILibraryManager libraryManager, IRecordingsManager recordingManager, IDtoService dtoService)
         {
             this.libraryManager = libraryManager;
             this.recordingManager = recordingManager;
@@ -28,7 +28,7 @@ namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
         }
 
         /// <inheritdoc />
-        public string Name => "First Run Scraper";
+        public string Name => "Manual Full Scraper";
 
         /// <inheritdoc />
         public string Description => "Populates Newsletter database with existing library content";
@@ -45,10 +45,7 @@ namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
         /// <returns>IEnumerable{BaseTaskTrigger}.</returns>
         public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
         {
-            yield return new TaskTriggerInfo
-            {
-                Type = TaskTriggerInfoType.StartupTrigger
-            };
+            yield break;
         }
 
         /// <inheritdoc />
@@ -58,7 +55,7 @@ namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
             progress.Report(0);
 
             var myScraper = new Scraper(libraryManager, recordingManager, dtoService, progress);
-            return myScraper.FirstRun();
+            return myScraper.ManualFullScrape();
         }
     }
 }

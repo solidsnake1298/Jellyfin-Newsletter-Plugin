@@ -2,12 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Jellyfin.Plugin.Newsletters.Configuration;
-using Jellyfin.Plugin.Newsletters.Shared.Database;
-using Jellyfin.Plugin.Newsletters.Shared.Entities;
+using Jellyfin.Plugin.NewslettersRedux.Configuration;
+using Jellyfin.Plugin.NewslettersRedux.Shared.Database;
+using Jellyfin.Plugin.NewslettersRedux.Shared.Entities;
 using Newtonsoft.Json;
 
-namespace Jellyfin.Plugin.Newsletters.Emails;
+namespace Jellyfin.Plugin.NewslettersRedux.Emails;
 
 public class HtmlBuilder
 {
@@ -227,7 +227,13 @@ public class HtmlBuilder
             }
 
             logger.Debug("CurrItem Season/Episode number: " + item.Season + "/" + item.Episode);
-            if (newSeason)
+            if (newSeason && count == listLen)
+            {
+                AddNewSeason();
+                AddCurrentSeason();
+                EndOfSeason();
+            }
+            else if (newSeason)
             {
                 AddNewSeason();
             }

@@ -10,7 +10,7 @@ description: "This plugin automacially scans a users library (default every 4 ho
 category: "General"
 owner: "jellyfin"
 artifacts:
-  - "Jellyfin.Plugin.Newsletters.dll"
+  - "Jellyfin.Plugin.NewslettersRedux.dll"
   - "SQLitePCL.pretty.dll"
 changelog: >
   - Fixed databse init, added DTO lookup for albums when default lookup fails.

@@ -3,10 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Plugin.Newsletters.Emails;
+using Jellyfin.Plugin.NewslettersRedux.Emails;
 using MediaBrowser.Model.Tasks;
 
-namespace Jellyfin.Plugin.Newsletters.ScheduledTasks
+namespace Jellyfin.Plugin.NewslettersRedux.ScheduledTasks
 {
     /// <summary>
     /// Class RefreshMediaLibraryTask.

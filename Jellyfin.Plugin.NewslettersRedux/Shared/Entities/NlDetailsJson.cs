@@ -1,5 +1,5 @@
 #pragma warning disable 1591
-namespace Jellyfin.Plugin.Newsletters.Shared.Entities;
+namespace Jellyfin.Plugin.NewslettersRedux.Shared.Entities;
 
 public class NlDetailsJson
 {

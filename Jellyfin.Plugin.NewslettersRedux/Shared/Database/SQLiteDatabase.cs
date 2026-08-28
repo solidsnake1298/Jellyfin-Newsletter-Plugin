@@ -5,7 +5,7 @@ using System.IO;
 using SQLitePCL;
 using SQLitePCL.pretty;
 
-namespace Jellyfin.Plugin.Newsletters.Shared.Database;
+namespace Jellyfin.Plugin.NewslettersRedux.Shared.Database;
 
 public class SqLiteDatabase
 {
@@ -26,7 +26,7 @@ public class SqLiteDatabase
 
         _ = raw.sqlite3_enable_shared_cache(1);
 
-        dbFilePath = config.DataPath + "/newsletters.db"; // get directory from config
+        dbFilePath = config.DataPath + "/newslettersRedux.db"; // get directory from config
         dbLockPath = dbFilePath + ".lock";
     }
 

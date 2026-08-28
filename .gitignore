@@ -1,8 +1,8 @@
 */.DS_Store
-Jellyfin.Plugin.Newsletters/bin
-Jellyfin.Plugin.Newsletters/obj
+Jellyfin.Plugin.NewslettersRedux/bin
+Jellyfin.Plugin.NewslettersRedux/obj
 RELEASES
 artifacts
-Jellyfin.Plugin.Newsletters/newsletters/
+Jellyfin.Plugin.NewslettersRedux/newsletters/
 *.bak
 .idea

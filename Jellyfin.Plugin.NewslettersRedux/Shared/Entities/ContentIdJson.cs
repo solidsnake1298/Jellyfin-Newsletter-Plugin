@@ -1,7 +1,7 @@
 #pragma warning disable 1591
 using System.Collections.Generic;
 
-namespace Jellyfin.Plugin.Newsletters.Shared.Entities;
+namespace Jellyfin.Plugin.NewslettersRedux.Shared.Entities;
 
 public class ContentIdJson
 {

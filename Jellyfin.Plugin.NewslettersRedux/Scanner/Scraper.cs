@@ -5,9 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Jellyfin.Data.Enums;
-using Jellyfin.Plugin.Newsletters.Configuration;
-using Jellyfin.Plugin.Newsletters.Shared.Database;
-using Jellyfin.Plugin.Newsletters.Shared.Entities;
+using Jellyfin.Plugin.NewslettersRedux.Configuration;
+using Jellyfin.Plugin.NewslettersRedux.Shared.Database;
+using Jellyfin.Plugin.NewslettersRedux.Shared.Entities;
 using MediaBrowser.Controller.Dto;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
@@ -16,7 +16,7 @@ using MediaBrowser.Controller.LiveTv;
 using MusicAlbum = MediaBrowser.Controller.Entities.Audio.MusicAlbum;
 using TVEntity = MediaBrowser.Controller.Entities.TV;
 
-namespace Jellyfin.Plugin.Newsletters.Scanner;
+namespace Jellyfin.Plugin.NewslettersRedux.Scanner;
 
 public class Scraper
 {

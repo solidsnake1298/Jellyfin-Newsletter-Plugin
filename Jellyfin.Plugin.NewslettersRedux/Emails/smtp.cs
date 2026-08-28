@@ -5,21 +5,21 @@ using System.IO;
 using System.Net;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
-using Jellyfin.Plugin.Newsletters.Configuration;
-using Jellyfin.Plugin.Newsletters.Scanner;
-using Jellyfin.Plugin.Newsletters.Shared.Database;
-using Jellyfin.Plugin.Newsletters.Shared.Entities;
+using Jellyfin.Plugin.NewslettersRedux.Configuration;
+using Jellyfin.Plugin.NewslettersRedux.Scanner;
+using Jellyfin.Plugin.NewslettersRedux.Shared.Database;
+using Jellyfin.Plugin.NewslettersRedux.Shared.Entities;
 using MediaBrowser.Common.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
-namespace Jellyfin.Plugin.Newsletters.Emails;
+namespace Jellyfin.Plugin.NewslettersRedux.Emails;
 
 /// <summary>
 /// Interaction logic for SendMail.xaml.
 /// </summary>
-// [Route("newsletters/[controller]")]
+// [Route("newslettersredux/[controller]")]
 [Authorize(Policy = Policies.RequiresElevation)]
 [ApiController] 
 [Route("Smtp")]

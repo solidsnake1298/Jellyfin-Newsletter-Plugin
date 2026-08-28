@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Jellyfin.Plugin.Newsletters.Configuration;
+using Jellyfin.Plugin.NewslettersRedux.Configuration;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 
-namespace Jellyfin.Plugin.Newsletters;
+namespace Jellyfin.Plugin.NewslettersRedux;
 
 /// <summary>
 /// The main plugin.
@@ -41,12 +41,12 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
             config.LogDirectoryPath = dataPaths.LogDirectoryPath;
 
             // Custom Paths
-            config.NewsletterDir = $"{config.TempDirectory}/Newsletters/";
+            config.NewsletterDir = $"{config.TempDirectory}/NewslettersRedux/";
         }
     }
 
     /// <inheritdoc />
-    public override string Name => "Newsletters";
+    public override string Name => "NewslettersRedux";
 
     /// <inheritdoc />
     public override Guid Id => Guid.Parse("60f478ab-2dd6-4ea0-af10-04d033f75979");

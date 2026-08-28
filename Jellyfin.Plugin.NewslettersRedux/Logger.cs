@@ -1,9 +1,9 @@
 #pragma warning disable SA1611, CS0162
 using System;
 using System.IO;
-using Jellyfin.Plugin.Newsletters.Configuration;
+using Jellyfin.Plugin.NewslettersRedux.Configuration;
 
-namespace Jellyfin.Plugin.Newsletters;
+namespace Jellyfin.Plugin.NewslettersRedux;
 
 /// <summary>
 /// Initializes a new instance of the <see cref="Logger"/> class.
@@ -19,7 +19,7 @@ public class Logger
     public Logger()
     {
         config = Plugin.Instance!.Configuration;
-        logFile = $"{config.LogDirectoryPath}/{GetDate()}_Newsletter.log";
+        logFile = $"{config.LogDirectoryPath}/{GetDate()}_NewslettersRedux.log";
     }
 
     /// <summary>
