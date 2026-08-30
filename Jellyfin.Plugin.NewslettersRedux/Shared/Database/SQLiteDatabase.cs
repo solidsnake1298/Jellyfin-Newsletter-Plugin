@@ -10,10 +10,11 @@ namespace Jellyfin.Plugin.NewslettersRedux.Shared.Database;
 public class SqLiteDatabase
 {
     private readonly string dbFilePath;
+    private readonly string dbOldFilePath;
     private readonly string dbLockPath;
     private readonly Logger logger;
     private SQLiteDatabaseConnection? db;
-
+ 
     public SqLiteDatabase()
     {
         logger = new Logger();
@@ -27,11 +28,19 @@ public class SqLiteDatabase
         _ = raw.sqlite3_enable_shared_cache(1);
 
         dbFilePath = config.DataPath + "/newslettersRedux.db"; // get directory from config
+        dbOldFilePath = config.DataPath + "/newsletters.db"; // get directory from config
         dbLockPath = dbFilePath + ".lock";
     }
 
     public void InitDatabase()
     {
+        // Checks if other newsletter DB files exist and copies to new file name
+        if (File.Exists(dbOldFilePath) && !File.Exists(dbFilePath))
+        {
+            logger.Info("Old newsletter DB file exists, copying to new file name");
+            File.Copy(dbOldFilePath, dbFilePath, true);
+        }
+        
         if (!File.Exists(dbLockPath)) // Database is not locked
         {
             CreateConnection();
