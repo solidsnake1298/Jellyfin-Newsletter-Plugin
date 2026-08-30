@@ -227,13 +227,7 @@ public class HtmlBuilder
             }
 
             logger.Debug("CurrItem Season/Episode number: " + item.Season + "/" + item.Episode);
-            if (newSeason && count == listLen)
-            {
-                AddNewSeason();
-                AddCurrentSeason();
-                EndOfSeason();
-            }
-            else if (newSeason)
+            if (newSeason)
             {
                 AddNewSeason();
             }
@@ -248,6 +242,8 @@ public class HtmlBuilder
             }
             else if (count == listLen)
             {
+                EndOfSeason();
+                AddNewSeason();
                 EndOfSeason();
             }
             else
