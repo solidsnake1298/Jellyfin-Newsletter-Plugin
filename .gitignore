@@ -4,5 +4,6 @@ Jellyfin.Plugin.NewslettersRedux/obj
 RELEASES
 artifacts
 Jellyfin.Plugin.NewslettersRedux/newsletters/
+Jellyfin.Plugin.NewslettersRedux/newsletters-redux/
 *.bak
 .idea
