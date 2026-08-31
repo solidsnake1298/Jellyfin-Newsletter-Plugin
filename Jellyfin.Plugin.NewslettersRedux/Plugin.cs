@@ -49,7 +49,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     public override string Name => "NewslettersRedux";
 
     /// <inheritdoc />
-    public override Guid Id => Guid.Parse("60f478ab-2dd6-4ea0-af10-04d033f75979");
+    public override Guid Id => Guid.Parse("47f7a2a6-0569-40ca-9548-0d4d1bd986d8");
 
     /// <summary>
     /// Gets the current plugin instance.

@@ -1,13 +1,29 @@
 [
     {
-        "guid": "60f478ab-2dd6-4ea0-af10-04d033f75979",
+        "guid": "47f7a2a6-0569-40ca-9548-0d4d1bd986d8",
         "name": "Newsletters Redux",
         "description": "This plugin automacially scans a users library (default every 4 hours), populates a list of recently added (not previously scanned) media, converts that data into HTML format, and sends out emails to a provided list of recipients.",
         "overview": "Send newsletters for recently added media",
         "owner": "jellyfin",
         "category": "General",
-        "imageUrl": "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png",
+        "imageUrl": "https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/logo.png",
         "versions": [
+            {
+                "version": "1.6.1.1",
+                "changelog": "- Set new GUID\n",
+                "targetAbi": "12.0.0.0",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.6.1.1-redux/newsletters-redux_1.6.1.1.zip",
+                "checksum": "e1e38c015c4cb0561915a4c707ff0db0",
+                "timestamp": "2026-08-31T12:35:21Z"
+            },
+            {
+                "version": "1.6.1.0",
+                "changelog": "- Set new GUID\n",
+                "targetAbi": "10.11.0.0",
+                "sourceUrl": "https://github.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/releases/download/v1.6.1.0-redux/newsletters-redux_1.6.1.0.zip",
+                "checksum": "5b675ee4c93dc3e79efd9c479e91b709",
+                "timestamp": "2026-08-31T12:32:12Z"
+            },
             {
                 "version": "1.6.0.1",
                 "changelog": "- Fixed newsletter not writing HTML for single episode seasons\n- Fully renamed plugin, added DB migration to new file name to allow fully co-existing with other Newsletter plugins\n",

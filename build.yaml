@@ -1,8 +1,8 @@
 ---
 name: "Newsletters Redux"
-guid: "60f478ab-2dd6-4ea0-af10-04d033f75979"
-imageUrl: "https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/logo.png"
-version: "1.6.0.1"
+guid: "47f7a2a6-0569-40ca-9548-0d4d1bd986d8"
+imageUrl: "https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/logo.png"
+version: "1.6.1.1"
 targetAbi: "12.0.0.0"
 framework: "net10.0"
 overview: "Send newsletters for recently added media"
@@ -13,6 +13,5 @@ artifacts:
   - "Jellyfin.Plugin.NewslettersRedux.dll"
   - "SQLitePCL.pretty.dll"
 changelog: >
-  - Fixed newsletter not writing HTML for single episode seasons
-  - Fully renamed plugin, added DB migration to new file name to allow fully co-existing with other Newsletter plugins
-FULL CHANGELOG: https://raw.githubusercontent.com/solidsnake1298/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md
+  - Set new GUID
+FULL CHANGELOG: https://raw.githubusercontent.com/thedreaddpirate/Jellyfin-Newsletter-Plugin/master/CHANGELOG.md
